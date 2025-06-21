@@ -1,35 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import CertificatePDF from "./CertificatePDF";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [name, setName] = useState("");
+  const [course, setCourse] = useState("");
+  const [ready, setReady] = useState(false);
+
+  const handleGenerate = (e) => {
+    e.preventDefault();
+    if (name.trim() && course.trim()) {
+      setReady(true);
+    } else {
+      alert("Preencha todos os campos");
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold mb-6">Gerador de Certificados</h1>
+      <form onSubmit={handleGenerate} className="space-y-4 w-full max-w-md">
+        <input
+          type="text"
+          placeholder="Nome do participante"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Nome do curso"
+          value={course}
+          onChange={(e) => setCourse(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        >
+          Gerar Certificado
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </form>
+
+      {ready && (
+        <div className="mt-6">
+          <PDFDownloadLink
+            document={<CertificatePDF name={name} course={course} />}
+            fileName={`certificado-${name.toLowerCase().replace(/\s/g, "-")}.pdf`}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            {({ loading }) => (loading ? "Gerando PDF..." : "Baixar Certificado")}
+          </PDFDownloadLink>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
