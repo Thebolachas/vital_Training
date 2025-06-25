@@ -1,60 +1,57 @@
-import React, { useState } from "react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import CertificatePDF from "./CertificatePDF";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-function App() {
-  const [name, setName] = useState("");
-  const [course, setCourse] = useState("");
-  const [ready, setReady] = useState(false);
+// Importação dos Provedores de Contexto
+// UserProvider gerencia os dados do usuário logado.
+// ProgressProvider gerencia o estado de conclusão dos módulos.
+import { UserProvider } from './Context/UserContext.jsx';
+import { ProgressProvider } from './Context/ProgressContext.jsx';
 
-  const handleGenerate = (e) => {
-    e.preventDefault();
-    if (name.trim() && course.trim()) {
-      setReady(true);
-    } else {
-      alert("Preencha todos os campos");
-    }
-  };
+// Importação das Páginas da Aplicação
+import IntroPage from './pages/IntroPage.jsx';
+import RegistrationPage from './pages/RegistrationPage.jsx';
+import HomePage from './pages/HomePage.jsx';
+import ModulePage2D from './pages/ModulePage2D.jsx';
+import ModulePage3D from './pages/ModulePage3D.jsx';
+import CertificatePage from './pages/CertificatePage.jsx'; // <-- NOVA IMPORTAÇÃO
 
+export default function App() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold mb-6">Gerador de Certificados</h1>
-      <form onSubmit={handleGenerate} className="space-y-4 w-full max-w-md">
-        <input
-          type="text"
-          placeholder="Nome do participante"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Nome do curso"
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-        >
-          Gerar Certificado
-        </button>
-      </form>
+    // Os Providers envolvem toda a aplicação, garantindo que qualquer
+    // componente filho possa acessar os contextos de usuário e progresso.
+    <UserProvider>
+      <ProgressProvider>
+        <Router>
+          <Routes>
+            {/* Rota inicial da aplicação */}
+            <Route path="/" element={<IntroPage />} />
+            
+            {/* Rota para a página de login/identificação */}
+            <Route path="/login" element={<RegistrationPage />} />
+            
+            {/* Rota para a página principal com a seleção de módulos */}
+            <Route path="/home" element={<HomePage />} />
+            
+            {/* Rotas dinâmicas para os módulos de treinamento */}
+            <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
+            <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
 
-      {ready && (
-        <div className="mt-6">
-          <PDFDownloadLink
-            document={<CertificatePDF name={name} course={course} />}
-            fileName={`certificado-${name.toLowerCase().replace(/\s/g, "-")}.pdf`}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            {({ loading }) => (loading ? "Gerando PDF..." : "Baixar Certificado")}
-          </PDFDownloadLink>
-        </div>
-      )}
-    </div>
+            {/* NOVA ROTA: Rota para a página de geração do certificado */}
+            <Route path="/certificate" element={<CertificatePage />} />
+            
+            {/* Rota de fallback para páginas não encontradas (404) */}
+            <Route path="*" element={
+              <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+                <h2 className="text-4xl font-bold text-gray-700 mb-4">404 - Página Não Encontrada</h2>
+                <p className="text-gray-500 mb-8">O caminho que você tentou acessar não existe.</p>
+                <Link to="/home" className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                  Voltar para a Página Principal
+                </Link>
+              </div>
+            } />
+          </Routes>
+        </Router>
+      </ProgressProvider>
+    </UserProvider>
   );
 }
-
-export default App;

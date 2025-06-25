@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# .gitignore
+
+# ... outros arquivos ignorados como node_modules, dist, etc.
+
+# Ignora todos os arquivos de ambiente local
+.env.local
+.env.*.local
