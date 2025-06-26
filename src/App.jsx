@@ -2,12 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { UserProvider } from './Context/UserContext.jsx';
 import { ProgressProvider } from './Context/ProgressContext.jsx';
+
 import IntroPage from './pages/IntroPage.jsx';
 import RegistrationPage from './pages/RegistrationPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ModulePage2D from './pages/ModulePage2D.jsx';
 import ModulePage3D from './pages/ModulePage3D.jsx';
 import CertificatePage from './pages/CertificatePage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx'; // Importar a nova página
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -31,6 +33,10 @@ export default function App() {
             <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
             <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
             <Route path="/certificate" element={<CertificatePage />} />
+            
+            {/* ROTA NOVA PARA O DASHBOARD */}
+            <Route path="/dashboard" element={<DashboardPage />} />
+
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Router>
