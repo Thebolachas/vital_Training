@@ -8,22 +8,35 @@ export default defineConfig({
     react(),
     VitePWA({ 
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'], // Adicione outros assets aqui
+      includeAssets: [
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'masked-icon.svg'
+      ],
       manifest: {
         name: 'TreinaFácil iCTG',
         short_name: 'iCTG Treino',
         description: 'Plataforma de treinamento para o dispositivo iCTG.',
         theme_color: '#ffffff',
-        icons: [ // Crie ícones com esses tamanhos
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/ICTG_imagens/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/ICTG_imagens/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: '/ICTG_imagens/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       } 
