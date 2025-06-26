@@ -1,42 +1,52 @@
-import React, { useState, useContext, createContext, useEffect } from 'react';
-import { useUser } from './UserContext'; // Importar o useUser para identificar o usuário
+import React, { useState, useContext, createContext, useEffect, useCallback } from 'react';
+import { useUser } from './UserContext';
+import { db } from '../firebaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const ProgressContext = createContext();
 
 export function ProgressProvider({ children }) {
-  const { user } = useUser(); // Obter o usuário atual
+  const { user } = useUser();
   const [progress, setProgress] = useState({});
 
-  // Efeito para CARREGAR o progresso do localStorage quando o usuário muda (ao logar)
+  // Efeito para CARREGAR o progresso do Firestore quando o usuário loga
   useEffect(() => {
-    if (user) {
-      const userProgressKey = `progress_${user.name}_${user.role}`;
-      const savedProgress = localStorage.getItem(userProgressKey);
-      if (savedProgress) {
-        setProgress(JSON.parse(savedProgress));
-      } else {
-        setProgress({}); // Reseta o progresso se for um novo usuário sem dados salvos
+    const fetchProgress = async () => {
+      if (user && user.uid) {
+        const progressDocRef = doc(db, 'progress', user.uid);
+        const progressDoc = await getDoc(progressDocRef);
+        if (progressDoc.exists()) {
+          setProgress(progressDoc.data());
+        } else {
+          setProgress({});
+        }
       }
-    } else {
-      setProgress({}); // Limpa o progresso ao fazer logout
-    }
-  }, [user]); // Depende do 'user' para re-executar
+    };
+    fetchProgress();
+  }, [user]);
 
-  // Efeito para SALVAR o progresso no localStorage sempre que ele mudar
-  useEffect(() => {
-    if (user && Object.keys(progress).length > 0) {
-      const userProgressKey = `progress_${user.name}_${user.role}`;
-      localStorage.setItem(userProgressKey, JSON.stringify(progress));
+  // Função para SALVAR o progresso no Firestore
+  const saveProgress = useCallback(async (newProgress) => {
+    if (user && user.uid) {
+      const progressDocRef = doc(db, 'progress', user.uid);
+      try {
+        await setDoc(progressDocRef, newProgress, { merge: true }); // 'merge: true' atualiza sem sobrescrever tudo
+      } catch (error) {
+        console.error("Erro ao salvar progresso:", error);
+      }
     }
-  }, [progress, user]); // Depende de 'progress' e 'user'
+  }, [user]);
 
+  // Atualiza o estado local e chama a função para salvar no Firestore
   const saveQuizResult = (moduleId, score, totalQuestions) => {
-    setProgress(prev => ({
-      ...prev,
+    const newProgressState = {
+      ...progress,
       [moduleId]: { completed: true, score, totalQuestions }
-    }));
+    };
+    setProgress(newProgressState);
+    saveProgress(newProgressState);
   };
-
+  
   const value = { progress, saveQuizResult };
 
   return (
