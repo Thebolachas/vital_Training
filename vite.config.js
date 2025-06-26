@@ -1,4 +1,3 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -6,13 +5,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({ 
+    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
         'favicon.ico',
         'apple-touch-icon.png',
         'masked-icon.svg'
       ],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 // 5 MB
+      },
       manifest: {
         name: 'TreinaFácil iCTG',
         short_name: 'iCTG Treino',
@@ -39,7 +41,7 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
-      } 
+      }
     })
   ],
 })
