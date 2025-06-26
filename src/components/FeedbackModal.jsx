@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import StarRating from './StarRating';
+import { db } from '../firebaseConfig'; // Importar o banco de dados
+import { collection, addDoc } from 'firebase/firestore'; // Importar funções do Firestore
 
 export default function FeedbackModal({ isOpen, onClose, user }) {
   const [ratings, setRatings] = useState({});
   const [openFeedback, setOpenFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -11,25 +14,32 @@ export default function FeedbackModal({ isOpen, onClose, user }) {
     setRatings(prev => ({ ...prev, [question]: rating }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!openFeedback.trim() || Object.keys(ratings).length < 3) {
       alert('Por favor, preencha todos os campos antes de enviar.');
       return;
     }
+    setIsSubmitting(true);
+
     const newFeedback = {
-      id: Date.now(),
       userName: user.name,
       userRole: user.role,
-      date: new Date().toLocaleDateString('pt-BR'),
+      date: new Date().toISOString(),
       openText: openFeedback,
       ratings: ratings,
     };
 
-    const existingFeedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
-    localStorage.setItem('feedbacks', JSON.stringify([...existingFeedbacks, newFeedback]));
-    
-    alert('Obrigado pelo seu feedback!');
-    onClose();
+    try {
+      // Salva o novo feedback em uma coleção chamada "feedbacks" no Firestore
+      await addDoc(collection(db, "feedbacks"), newFeedback);
+      alert('Obrigado pelo seu feedback!');
+      onClose(); // Fecha o modal
+    } catch (error) {
+      console.error("Erro ao enviar feedback: ", error);
+      alert("Houve um erro ao enviar seu feedback. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,8 +72,10 @@ export default function FeedbackModal({ isOpen, onClose, user }) {
         </div>
 
         <div className="flex gap-4 mt-8">
-          <button onClick={onClose} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition-colors">Fechar</button>
-          <button onClick={handleSubmit} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Enviar Feedback</button>
+          <button onClick={onClose} disabled={isSubmitting} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50">Fechar</button>
+          <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50">
+            {isSubmitting ? 'Enviando...' : 'Enviar Feedback'}
+          </button>
         </div>
       </div>
     </div>
