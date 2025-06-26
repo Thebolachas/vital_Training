@@ -1,14 +1,76 @@
-/* Removido o conteúdo que limitava #root para permitir layouts de tela cheia. */
-/* Os estilos do logo e outros elementos podem ser movidos para seus próprios componentes ou mantidos se forem usados em outras partes do app. */
-/* Se este arquivo não for usado em nenhum outro lugar, ele pode até ser esvaziado. */
-
-/* Estilos globais mínimos que não atrapalham */
+/* Estilos globais */
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #f0f2f5; /* Um fundo neutro para o app */
+  background-color: #f0f2f5;
 }
 
+/* Container principal */
 #root {
   min-height: 100vh;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  background-color: #f0f2f5;
+}
+
+/* Container da simulação 3D */
+.simulacao-container {
+  max-height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 6rem; /* espaço para o botão fixo */
+  position: relative;
+}
+
+/* Botão fixo para continuar */
+.botao-continuar {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 0.5rem;
+  text-align: center;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* Canvas 3D responsivo */
+.canvas-3d {
+  width: 100%;
+  height: 300px;
+  background-color: #222;
+  touch-action: none;
+}
+
+/* Animações do logo, cartões e outras classes que você tiver */
+/* ... (adicione aqui seu CSS existente) */
+
+/* Ajustes para telas maiores */
+@media (min-width: 769px) {
+  .canvas-3d {
+    height: 400px;
+  }
+}
+
+/* Ajustes para telas menores (mobile) */
+@media (max-width: 768px) {
+  #root {
+    padding: 0.5rem 1rem;
+  }
+  
+  .card {
+    padding: 1.25rem;
+  }
+
+  .logo {
+    height: 4em;
+    padding: 1em;
+  }
 }
