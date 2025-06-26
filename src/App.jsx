@@ -1,66 +1,40 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { UserProvider } from './Context/UserContext.jsx';
+import { ProgressProvider } from './Context/ProgressContext.jsx';
+import IntroPage from './pages/IntroPage.jsx';
+import RegistrationPage from './pages/RegistrationPage.jsx';
+import HomePage from './pages/HomePage.jsx';
+import ModulePage2D from './pages/ModulePage2D.jsx';
+import ModulePage3D from './pages/ModulePage3D.jsx';
+import CertificatePage from './pages/CertificatePage.jsx';
 
-export default function Simulacao() {
+const NotFoundPage = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+    <h2 className="text-4xl font-bold text-gray-700 mb-4">404 - Página Não Encontrada</h2>
+    <p className="text-gray-500 mb-8">O caminho que você tentou acessar não existe.</p>
+    <Link to="/home" className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+      Voltar para a Página Principal
+    </Link>
+  </div>
+);
+
+export default function App() {
   return (
-    <div className="simulacao-container" style={{ position: 'relative' }}>
-      {/* Canvas ou elemento da simulação 3D */}
-      <canvas
-        id="simulacao-3d"
-        style={{
-          width: '100%',
-          height: '100vh',
-          backgroundColor: '#fff',
-          display: 'block',
-          zIndex: 1,
-          position: 'relative',
-        }}
-      ></canvas>
-
-      {/* Caixa flutuante de orientações */}
-      <div
-        className="caixa-flutuante"
-        style={{
-          position: 'fixed',
-          top: '10%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 10,
-          pointerEvents: 'auto',
-          color: '#333',
-          fontSize: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        <p>Leia atentamente as instruções para prosseguir com a simulação.</p>
-      </div>
-
-      {/* Botão continuar fixo no rodapé */}
-      <button
-        className="botao-continuar"
-        style={{
-          position: 'fixed',
-          bottom: '1rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          padding: '1rem 2rem',
-          backgroundColor: '#2563eb',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '0.5rem',
-          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
-          zIndex: 20,
-          cursor: 'pointer',
-        }}
-        onClick={() => {
-          alert('Continuar clicado!'); // substituir pela lógica real da simulação
-        }}
-      >
-        Continuar
-      </button>
-    </div>
+    <UserProvider>
+      <ProgressProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<IntroPage />} />
+            <Route path="/login" element={<RegistrationPage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
+            <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
+            <Route path="/certificate" element={<CertificatePage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Router>
+      </ProgressProvider>
+    </UserProvider>
   );
 }

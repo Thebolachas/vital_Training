@@ -15,11 +15,9 @@ const ProgressStatus = ({ user, progress }) => {
       </div>
     );
   }
-
   const baseModules = ['1', '2', '3'];
   const advancedModules = ['4', '5'];
   const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
-  
   const isPrivileged = privilegedRoles.includes(user.role);
   const requiredModules = isPrivileged ? [...baseModules, ...advancedModules] : baseModules;
   const completedCount = requiredModules.filter(id => progress[id]?.completed).length;
@@ -77,17 +75,13 @@ export default function HomePage() {
           </Link>
         )}
       </header>
-
-      {/* Container principal para centralizar o conteúdo */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <main className="py-8">
           <div className="text-center mb-10">
             <h1 className="text-4xl font-black text-gray-800 mb-2">Plataforma de Treinamento iCTG</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Escolha um módulo para iniciar seu aprendizado.</p>
           </div>
-          
           <ProgressStatus user={user} progress={progress} />
-          
           <div className="w-full max-w-4xl mx-auto space-y-8">
             {modulosVisiveis.map(id => (
               <div key={id} className={`p-6 rounded-xl shadow-lg border ${modulosData[id].color === 'teal' ? 'bg-teal-50 border-teal-200' : 'bg-white border-gray-200'}`}>
