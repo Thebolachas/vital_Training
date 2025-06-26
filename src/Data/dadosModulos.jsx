@@ -7,23 +7,22 @@ export const modulosData = {
   '1': {
     title: "Módulo 1: Introdução, Desembalar e Identificar",
     color: "blue", // Usado pelo modo 2D
-    // --- Dados para a experiência 2D (extraídos do seu App.jsx) ---
     teoria2D: {
       teoria: () => (
         <div className="bg-white p-8 rounded-xl shadow-lg text-gray-800">
           <h2 className="text-2xl font-bold mb-4">📦 Conteúdo da Embalagem e Instalação Inicial</h2>
           <p className="mb-4">O iCTG é fornecido com todos os itens essenciais para seu uso imediato. Abaixo estão os componentes:</p>
           <ul className="list-disc pl-5 mb-6 space-y-2">
-              <li>1 Transdutor Fetal (FHR)</li>
-              <li>1 Transdutor de Contração Uterina (TOCO)</li>
-              <li>1 App para tablet</li>
-              <li>1 Carregador AC bivolt com acessórios</li>
-              <li>2 Cintas de fixação e 1 Gel</li>
+            <li>1 Transdutor Fetal (FHR)</li>
+            <li>1 Transdutor de Contração Uterina (TOCO)</li>
+            <li>1 App para tablet</li>
+            <li>1 Carregador AC bivolt com acessórios</li>
+            <li>2 Cintas de fixação e 1 Gel</li>
           </ul>
           <h3 className="text-xl font-semibold mb-2">⚙️ Especificações Técnicas</h3>
           <ul className="list-disc pl-5 space-y-2">
-              <li>Carregamento: 1h → 6~10h de uso contínuo</li>
-              <li>Conexão: Bluetooth 4.1 LE</li>
+            <li>Carregamento: 1h → 6~10h de uso contínuo</li>
+            <li>Conexão: Bluetooth 4.1 LE</li>
           </ul>
         </div>
       ),
@@ -47,7 +46,6 @@ export const modulosData = {
         { pergunta: 'Como o iCTG se conecta ao sistema de análise?', opcoes: ['Via USB com notebook dedicado', 'Via Wi-Fi conectado à TV', 'Via Bluetooth com app em tablet ou smartphone'], correta: 2, feedback: "Exato! A portabilidade do iCTG é garantida pela sua conexão sem fio via Bluetooth, permitindo que os dados sejam visualizados em tempo real em um tablet ou smartphone." },
       ]
     },
-    // --- Dados para a simulação 3D ---
     simulacao3D: {
       tasks: [
         { id: 'abrir_caixa', target: 'box', prompt: "Bem-vindo! Sua primeira tarefa é abrir a caixa. Clique nela.", completedText: "Abra A caixa!" },
@@ -57,8 +55,8 @@ export const modulosData = {
         { id: 'final', prompt: "Missão 1 completa! Você está pronto para o próximo desafio.", completedText: "Parabéns!", isFinal: true }
       ],
       components: [
-        { id: 'fhr', nome: "Transdutor Fetal (FHR)", cor: '#EC4899', posicao: [-0.6, 0.05, 0] },
-        { id: 'toco', nome: "Transdutor de Contrações (TOCO)", cor: '#3B82F6', posicao: [0.6, 0.05, 0] },
+        { id: 'fhr', nome: "Transdutor Fetal (FHR)", cor: '#FFC0CB', posicao: [-0.8, 0.05, 0] }, // Rosa Pastel
+        { id: 'toco', nome: "Transdutor de Contrações (TOCO)", cor: '#ADD8E6', posicao: [0.8, 0.05, 0] }  // Azul Pastel
       ]
     }
   },
@@ -105,24 +103,9 @@ export const modulosData = {
           { titulo: "Verifique a Conexão de Rede", imagem: "/ICTG_imagens/33_conexao_rede_ok.png", descricao: "O ícone de rede deve estar verde para garantir o envio dos dados após o exame." }
         ],
         quiz: [
-            {
-              pergunta: 'Qual cor indica que um transdutor está carregando?',
-              opcoes: ['Verde', 'Vermelho', 'Laranja', 'Azul'],
-              correta: 2,
-              feedback: "Isso mesmo! A luz laranja é o indicador padrão de que a bateria está em processo de recarga. Ela se tornará verde quando a carga estiver completa."
-            },
-            {
-              pergunta: 'O que se deve fazer para registrar um novo paciente?',
-              opcoes: ['Ir ao menu de configurações', 'Usar o botão de adicionar na lista de pacientes', 'Reiniciar o aplicativo'],
-              correta: 1,
-              feedback: "Correto! O fluxo padrão no aplicativo é ir para a 'Lista de Pacientes' e usar o botão de adição (+) para criar um novo registro."
-            },
-            {
-              pergunta: 'Um ícone de coração com um "check" no aplicativo significa o quê?',
-              opcoes: ['Bateria fraca', 'Conexão de internet estabelecida', 'Conexão Bluetooth bem-sucedida'],
-              correta: 2,
-              feedback: "Perfeito! O ícone de coração representa o transdutor, e o 'check' é a confirmação visual de que a comunicação via Bluetooth está ativa e funcionando."
-            },
+            { pergunta: 'Qual cor indica que um transdutor está carregando?', opcoes: ['Verde', 'Vermelho', 'Laranja', 'Azul'], correta: 2, feedback: "Isso mesmo! A luz laranja é o indicador padrão de que a bateria está em processo de recarga. Ela se tornará verde quando a carga estiver completa." },
+            { pergunta: 'O que se deve fazer para registrar um novo paciente?', opcoes: ['Ir ao menu de configurações', 'Usar o botão de adicionar na lista de pacientes', 'Reiniciar o aplicativo'], correta: 1, feedback: "Correto! O fluxo padrão no aplicativo é ir para a 'Lista de Pacientes' e usar o botão de adição (+) para criar um novo registro." },
+            { pergunta: 'Um ícone de coração com um "check" no aplicativo significa o quê?', opcoes: ['Bateria fraca', 'Conexão de internet estabelecida', 'Conexão Bluetooth bem-sucedida'], correta: 2, feedback: "Perfeito! O ícone de coração representa o transdutor, e o 'check' é a confirmação visual de que a comunicação via Bluetooth está ativa e funcionando." },
         ]
       },
       simulacao3D: null
@@ -171,30 +154,13 @@ export const modulosData = {
           { titulo: "Carregar ao Final", imagem: "/ICTG_imagens/52_carregar_ao_final.png", descricao: "Antes de guardar certifique-se de carregar os dois transdutores." }
         ],
         quiz: [
-            {
-              pergunta: 'Em qual transdutor o gel de contato deve ser aplicado?',
-              opcoes: ['No de contrações (TOCO)', 'Nos dois transdutores', 'No de batimento cardíaco (FHR)'],
-              correta: 2,
-              feedback: "Exatamente! O gel é necessário apenas no transdutor FHR para garantir uma boa condutividade e a captação clara do som dos batimentos cardíacos fetais."
-            },
-            {
-              pergunta: 'O que deve ser feito se o gráfico da frequência cardíaca estiver interrompido?',
-              opcoes: ['Aumentar o volume', 'Reiniciar o aplicativo', 'Reposicionar o monitor FHR'],
-              correta: 2,
-              feedback: "Correto. Uma interrupção no gráfico quase sempre indica que o transdutor perdeu o contato ideal. Reposicioná-lo é o primeiro passo para obter um sinal estável."
-            },
-            {
-              pergunta: 'Qual é o procedimento final após desligar os transdutores?',
-              opcoes: ['Guardá-los imediatamente', 'Colocá-los para carregar', 'Lavar com água e sabão'],
-              correta: 1,
-              feedback: "Isso mesmo. Para garantir que o equipamento esteja sempre pronto para o próximo uso, a boa prática é colocá-lo para carregar logo após a limpeza e o desligamento."
-            }
+            { pergunta: 'Em qual transdutor o gel de contato deve ser aplicado?', opcoes: ['No de contrações (TOCO)', 'Nos dois transdutores', 'No de batimento cardíaco (FHR)'], correta: 2, feedback: "Exatamente! O gel é necessário apenas no transdutor FHR para garantir uma boa condutividade e a captação clara do som dos batimentos cardíacos fetais." },
+            { pergunta: 'O que deve ser feito se o gráfico da frequência cardíaca estiver interrompido?', opcoes: ['Aumentar o volume', 'Reiniciar o aplicativo', 'Reposicionar o monitor FHR'], correta: 2, feedback: "Correto. Uma interrupção no gráfico quase sempre indica que o transdutor perdeu o contato ideal. Reposicioná-lo é o primeiro passo para obter um sinal estável." },
+            { pergunta: 'Qual é o procedimento final após desligar os transdutores?', opcoes: ['Guardá-los imediatamente', 'Colocá-los para carregar', 'Lavar com água e sabão'], correta: 1, feedback: "Isso mesmo. Para garantir que o equipamento esteja sempre pronto para o próximo uso, a boa prática é colocá-lo para carregar logo após a limpeza e o desligamento." }
         ]
       },
       simulacao3D: null
   },
-
-  // -------- INÍCIO DOS NOVOS MÓDULOS --------
   '4': {
     title: "Módulo 4: Análise e Gestão de Dados",
     color: "orange",
@@ -204,20 +170,20 @@ export const modulosData = {
           <h2 className="text-2xl font-bold mb-4">Gestão de Dados no Tablet</h2>
           <p className="mb-4">Após a conclusão dos exames, o aplicativo iCTG permite gerenciar os dados salvos diretamente no tablet. Isso inclui visualizar exames antigos, reenviar dados que falharam na transmissão para a nuvem e excluir registros permanentemente.</p>
           <h3 className="text-xl font-semibold mb-2">Visualizando Medições Anteriores</h3>
-          [cite_start]<p className="mb-4">Para acessar um exame antigo, selecione o paciente, toque no ícone da lista de dados e escolha a medição desejada pela data e hora. O gráfico correspondente será exibido na tela[cite: 186].</p>
+          <p className="mb-4">Para acessar um exame antigo, selecione o paciente, toque no ícone da lista de dados e escolha a medição desejada pela data e hora. O gráfico correspondente será exibido na tela.</p>
           <h3 className="text-xl font-semibold mb-2">Reenviando Dados para a Nuvem</h3>
-          <p className="mb-4">Se houver uma falha de conexão com a internet, os dados podem não ser enviados para o servidor. Nesse caso, o registro ficará com a marca "Unsend" (Não enviado). [cite_start]Para reenviar, selecione o registro e utilize a opção de reenvio para garantir que o especialista remoto tenha acesso ao exame[cite: 189].</p>
+          <p className="mb-4">Se houver uma falha de conexão com a internet, os dados podem não ser enviados para o servidor. Nesse caso, o registro ficará com a marca "Unsend" (Não enviado). Para reenviar, selecione o registro e utilize a opção de reenvio para garantir que o especialista remoto tenha acesso ao exame.</p>
            <h3 className="text-xl font-semibold mb-2">Excluindo Dados</h3>
-          [cite_start]<p className="mb-4 text-red-700 font-bold">Atenção: A exclusão de dados é uma ação permanente e os registros não podem ser recuperados após a confirmação[cite: 190]. Use esta função com cuidado. [cite_start]Para excluir, selecione os dados e confirme a ação na caixa de diálogo[cite: 190].</p>
+          <p className="mb-4 text-red-700 font-bold">Atenção: A exclusão de dados é uma ação permanente e os registros não podem ser recuperados após a confirmação. Use esta função com cuidado. Para excluir, selecione os dados e confirme a ação na caixa de diálogo.</p>
         </div>
       ),
       imagens: [
-        { titulo: "Acessar Lista de Dados", imagem: "/melody/Lista_de_Dados.png", descricao: "Toque no ícone da lista de dados para ver todos os exames salvos para o paciente selecionado." },
-        { titulo: "Selecionar Exame", imagem: "/melody/selecionar_exame.png", descricao: "Faça um scroll na lista para encontrar o exame desejado e toque para selecioná-lo." },
-        { titulo: "Visualizar Gráfico Antigo", imagem: "/melody/Gráfico_Antigo.png", descricao: "O gráfico do exame selecionado será exibido, permitindo a análise retrospectiva." },
-        { titulo: "Falha no Envio", imagem: "/melody/Falha_ no_ Envio.png", descricao: "Se um exame não for enviado para a nuvem, ele será marcado como 'Unsend'." },
-        { titulo: "Confirmar Reenvio", imagem: "/melody/reenvio.png", descricao: "Selecione o exame e confirme a opção de reenviar os dados para o servidor." },
-        { titulo: "Excluir Dados", imagem: "/melody/excluir_dados.png", descricao: "É possível excluir registros permanentemente do tablet, mas essa ação não pode ser desfeita." }
+        { titulo: "Acessar Lista de Dados", imagem: "/ICTG_imagens/53_acessar_dados.png", descricao: "Toque no ícone da lista de dados para ver todos os exames salvos para o paciente selecionado." },
+        { titulo: "Selecionar Exame", imagem: "/ICTG_imagens/54_scroll_e_selecao.png", descricao: "Faça um scroll na lista para encontrar o exame desejado e toque para selecioná-lo." },
+        { titulo: "Visualizar Gráfico Antigo", imagem: "/ICTG_imagens/55_grafico_antigo.png", descricao: "O gráfico do exame selecionado será exibido, permitindo a análise retrospectiva." },
+        { titulo: "Falha no Envio", imagem: "/ICTG_imagens/56_reenviar_dados.png", descricao: "Se um exame não for enviado para a nuvem, ele será marcado como 'Unsend'." },
+        { titulo: "Confirmar Reenvio", imagem: "/ICTG_imagens/57_confirmar_reenvio.png", descricao: "Selecione o exame e confirme a opção de reenviar os dados para o servidor." },
+        { titulo: "Excluir Dados", imagem: "/ICTG_imagens/58_deletar_dados.png", descricao: "É possível excluir registros permanentemente do tablet, mas essa ação não pode ser desfeita." }
       ],
       quiz: [
         { pergunta: 'O que você deve fazer se um exame estiver marcado como "Unsend"?', opcoes: ['Deletar o exame e refazê-lo', 'Selecionar o exame e usar a função de reenviar', 'Reiniciar o tablet'], correta: 1, feedback: "Correto! A marca 'Unsend' indica uma falha de transmissão. A função de reenviar foi criada exatamente para resolver essa situação sem perda de dados." },
@@ -236,7 +202,7 @@ export const modulosData = {
             <p className="mb-4">Uma das maiores vantagens do iCTG é a capacidade de monitoramento remoto. Especialistas podem analisar os dados em tempo real de qualquer lugar, usando diferentes métodos de acesso.</p>
             <h3 className="text-xl font-semibold mb-2">Formas de Acesso</h3>
             <ul className="list-disc pl-5 mb-4 space-y-2">
-                <li><strong>Viewer App Dedicado (iOS):</strong> Oferece a experiência mais completa.O usuário pode navegar entre pacientes e acessar históricos completos. Ao receber uma notificação de início de monitoramento, o app abre diretamente no exame em tempo real.</li>
+                <li><strong>Viewer App Dedicado (iOS):</strong> Oferece a experiência mais completa. O usuário pode navegar entre pacientes e acessar históricos completos. Ao receber uma notificação de início de monitoramento, o app abre diretamente no exame em tempo real.</li>
                 <li><strong>iCTG Viewer Web Service:</strong> Acessível por qualquer navegador (PC, tablet, smartphone) através de um URL, login e senha. É ideal para quem não possui o aplicativo instalado e permite a impressão e geração de PDFs (A3/A4) dos gráficos.</li>
                 <li><strong>Notificação por E-mail:</strong> Um link no e-mail de notificação leva diretamente ao exame em tempo real. No entanto, esta via não permite consultar o histórico ou outros pacientes.</li>
             </ul>
@@ -245,12 +211,12 @@ export const modulosData = {
           </div>
         ),
         imagens: [
-            { titulo: "Visão Geral do Acesso Remoto", imagem: "/melody/Acesso_ Remoto.png", descricao: "Os dados são enviados à nuvem Melody i, de onde podem ser acessados por um app dedicado ou por qualquer navegador web." },
-            { titulo: "Acesso via Navegador Web", imagem: "/melody/acesso_web.png", descricao: "Para acessar pelo navegador, basta inserir o URL fornecido, conta e senha." },
-            { titulo: "Interface do Viewer Web", imagem: "/melody/selecao_pct_web.png", descricao: "A tela principal do serviço web exibe o gráfico e permite selecionar o paciente, a data do exame e imprimir." },
-            { titulo: "Seleção de Paciente no Web", imagem: "/melody/selecao_pct_area.png", descricao: "É possível alternar entre diferentes pacientes usando a lista suspensa de IDs." },
-            { titulo: "Seleção de Data do Exame", imagem: "/melody/selecao_data_do_exame.png", descricao: "Para um mesmo paciente, pode-se navegar entre os diferentes registros de exames realizados." },
-            { titulo: "Configurações de Gráfico Web", imagem: "/melody/selecao_graf.png", descricao: "As configurações permitem alterar a cor e espessura das linhas do gráfico, como FHR1, FHR2 e contração uterina." }
+            { titulo: "Visão Geral do Acesso Remoto", imagem: "/ICTG_imagens/59_visao_geral_remoto.png", descricao: "Os dados são enviados à nuvem Melody i, de onde podem ser acessados por um app dedicado ou por qualquer navegador web." },
+            { titulo: "Acesso via Navegador Web", imagem: "/ICTG_imagens/60_acesso_web.png", descricao: "Para acessar pelo navegador, basta inserir o URL fornecido, conta e senha." },
+            { titulo: "Interface do Viewer Web", imagem: "/ICTG_imagens/61_interface_web.png", descricao: "A tela principal do serviço web exibe o gráfico e permite selecionar o paciente, a data do exame e imprimir." },
+            { titulo: "Seleção de Paciente no Web", imagem: "/ICTG_imagens/62_selecao_paciente_web.png", descricao: "É possível alternar entre diferentes pacientes usando a lista suspensa de IDs." },
+            { titulo: "Seleção de Data do Exame", imagem: "/ICTG_imagens/63_selecao_data_web.png", descricao: "Para um mesmo paciente, pode-se navegar entre os diferentes registros de exames realizados." },
+            { titulo: "Configurações de Gráfico Web", imagem: "/ICTG_imagens/64_config_web.png", descricao: "As configurações permitem alterar a cor e espessura das linhas do gráfico, como FHR1, FHR2 e contração uterina." }
         ],
         quiz: [
             { pergunta: 'Qual método de acesso remoto oferece a funcionalidade mais completa, incluindo histórico de pacientes?', opcoes: ['Link de E-mail', 'Viewer App dedicado', 'Acesso pelo site da Melody'], correta: 1, feedback: "Correto! O Viewer App dedicado é a ferramenta mais completa, permitindo navegação completa entre pacientes e seus históricos, algo que o link de e-mail não faz." },
@@ -260,8 +226,6 @@ export const modulosData = {
      },
      simulacao3D: null
   },
-  // -------- FIM DOS NOVOS MÓDULOS --------
-
   'médico': {
     title: "Módulo Especial: Análise Avançada de Cardiotoco",
     color: "teal",

@@ -5,38 +5,28 @@ import { OrbitControls, Environment, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { modulosData } from '../Data/dadosModulos.jsx';
 
-// --- GEOMETRIA DO CORAÇÃO REINTRODUZIDA ---
+// Geometria do Coração
 const createHeartGeometry = () => {
   const shape = new THREE.Shape();
-  const s = 0.04; // Aumentei um pouco o tamanho para melhor visualização
+  const s = 0.04;
   shape.moveTo(0, -5 * s);
   shape.bezierCurveTo(-3 * s, -10 * s, -10 * s, -10 * s, -10 * s, -2 * s);
   shape.bezierCurveTo(-10 * s, 4 * s, -3 * s, 8 * s, 0, 10 * s);
   shape.bezierCurveTo(3 * s, 8 * s, 10 * s, 4 * s, 10 * s, -2 * s);
   shape.bezierCurveTo(10 * s, -10 * s, 3 * s, -10 * s, 0, -5 * s);
-  const extrudeSettings = {
-    depth: 4 * s,
-    bevelEnabled: true,
-    bevelSegments: 2,
-    steps: 2,
-    bevelSize: 1 * s,
-    bevelThickness: 1 * s,
-  };
+  const extrudeSettings = { depth: 4 * s, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1 * s, bevelThickness: 1 * s };
   const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
   geometry.center();
   return geometry;
 };
 const heartGeometry = createHeartGeometry();
 
-
-function Item({ id, nome, cor, posicao, onSelect, isTarget, selected }) {
+function Item({ id, cor, posicao, onSelect, isTarget, selected }) {
   const meshRef = useRef();
   
   useEffect(() => {
-    if (isTarget) {
-      document.body.style.cursor = 'pointer';
-      return () => { document.body.style.cursor = 'auto'; };
-    }
+    document.body.style.cursor = isTarget ? 'pointer' : 'auto';
+    return () => { document.body.style.cursor = 'auto'; };
   }, [isTarget]);
 
   useFrame((state) => {
@@ -57,13 +47,9 @@ function Item({ id, nome, cor, posicao, onSelect, isTarget, selected }) {
 
   return (
     <group
-      position={[posicao[0], posicao[1], posicao[2]]}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(selected ? null : id);
-      }}
+      position={posicao}
+      onClick={(e) => { e.stopPropagation(); onSelect(selected ? null : id); }}
     >
-      {/* --- CORREÇÃO: TROCANDO A ESFERA DE VOLTA PELO CORAÇÃO --- */}
       <mesh ref={meshRef} geometry={heartGeometry} rotation-x={-Math.PI / 2} castShadow>
         <meshStandardMaterial color={cor} roughness={0.3} metalness={0.2} />
       </mesh>
@@ -71,21 +57,13 @@ function Item({ id, nome, cor, posicao, onSelect, isTarget, selected }) {
   );
 }
 
-// O resto do código (Box, AdaptiveCamera, InteractiveModule, etc.) permanece o mesmo da versão funcional anterior.
-// ... (incluindo o resto do arquivo para garantir que esteja completo)
 function Box({ onOpen, isOpen }) {
   const lidRef = useRef();
-
   useFrame(() => {
     if (isOpen && lidRef.current && lidRef.current.rotation.x > -Math.PI / 1.9) {
-      lidRef.current.rotation.x = THREE.MathUtils.lerp(
-        lidRef.current.rotation.x,
-        -Math.PI / 1.9,
-        0.08
-      );
+      lidRef.current.rotation.x = THREE.MathUtils.lerp(lidRef.current.rotation.x, -Math.PI / 1.9, 0.08);
     }
   });
-
   return (
     <group onClick={(e) => { e.stopPropagation(); if (!isOpen) onOpen(); }}>
       <mesh position={[0, -0.15, 0]} castShadow receiveShadow>
@@ -96,13 +74,7 @@ function Box({ onOpen, isOpen }) {
         <boxGeometry args={[4.8, 0.08, 2.0]} />
         <meshStandardMaterial color="#f472b6" metalness={0.1} roughness={0.4}/>
         {!isOpen && (
-          <Text
-            position={[0, 0.05, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            color="white"
-            fontSize={0.25}
-            anchorX="center"
-          >
+          <Text position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} color="white" fontSize={0.25} anchorX="center">
             Clique para Abrir
           </Text>
         )}
@@ -115,16 +87,10 @@ function AdaptiveCamera() {
   const { camera, size } = useThree();
   useEffect(() => {
     const isMobile = size.width < 768;
-    if (isMobile) {
-      camera.position.set(0, 3, 7);
-      camera.fov = 55;
-    } else {
-      camera.position.set(0, 2, 5);
-      camera.fov = 50;
-    }
+    camera.position.set(0, isMobile ? 4 : 2, isMobile ? 8 : 5);
+    camera.fov = isMobile ? 55 : 50;
     camera.updateProjectionMatrix();
   }, [camera, size]);
-
   return null;
 }
 
@@ -137,9 +103,7 @@ function InteractiveModule({ modulo }) {
   const handleSelect = (selectedId) => {
     setSelectedItem(selectedId);
     if (selectedId && selectedId === currentTask.target) {
-      if (currentTask.id === 'abrir_caixa' && !isBoxOpen) {
-          setBoxOpen(true);
-      }
+      if (currentTask.id === 'abrir_caixa' && !isBoxOpen) setBoxOpen(true);
       if (taskIndex + 1 < modulo.tasks.length) {
           setTimeout(() => {
               setTaskIndex(taskIndex + 1);
@@ -150,20 +114,14 @@ function InteractiveModule({ modulo }) {
   };
   
   return (
-    <div className="w-full h-screen relative bg-gray-900 text-white">
-      <Canvas 
-        className="absolute inset-0 z-10 bg-gray-900"
-        shadows
-        dpr={[1, 2]}
-      >
+    <div className="w-full h-screen relative bg-gray-900 text-white overflow-hidden">
+      <Canvas shadows dpr={[1, 2]}>
         <Suspense fallback={null}>
           <ambientLight intensity={0.7} />
           <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={2} castShadow />
           <Environment preset="city" />
           <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2.2} minDistance={3} maxDistance={12} />
-          
           <AdaptiveCamera />
-
           <group position-y={-0.5}>
             <Box onOpen={() => handleSelect('box')} isOpen={isBoxOpen} />
             {isBoxOpen &&
@@ -180,8 +138,9 @@ function InteractiveModule({ modulo }) {
         </Suspense>
       </Canvas>
 
-      <div className="absolute top-0 left-0 p-4 w-full md:max-w-md md:p-8 z-20 pointer-events-none">
-        <div className="bg-black bg-opacity-60 backdrop-blur-sm p-4 rounded-lg shadow-2xl pointer-events-auto">
+      {/* --- ALTERAÇÃO PRINCIPAL: POSICIONAMENTO DA INTERFACE --- */}
+      <div className="absolute bottom-0 left-0 md:top-0 p-4 w-full md:max-w-md md:p-8">
+        <div className="bg-black bg-opacity-70 backdrop-blur-sm p-4 rounded-lg shadow-2xl">
           <h2 className="text-xl md:text-3xl font-bold mb-2">{modulo.title}</h2>
           <h3 className="text-base md:text-xl font-semibold text-cyan-400 mb-1">Tarefa Atual:</h3>
           <p className="text-sm md:text-lg mb-4">{currentTask.prompt}</p>
@@ -196,9 +155,9 @@ function InteractiveModule({ modulo }) {
             <ul className="space-y-1 text-xs">
               {modulo.tasks.map((task, index) => (
                 <li key={task.id} className={`transition-all ${
-                    index < taskIndex ? 'text-green-400 opacity-70 line-through'
-                    : index === taskIndex ? 'text-cyan-300 font-bold'
-                    : 'text-gray-400'
+                    index < taskIndex ? 'text-green-400 opacity-70 line-through' :
+                    index === taskIndex ? 'text-cyan-300 font-bold' :
+                    'text-gray-400'
                   }`}
                 >
                   {task.completedText || task.prompt}
@@ -210,7 +169,7 @@ function InteractiveModule({ modulo }) {
       </div>
 
       {currentTask.isFinal && (
-        <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 pointer-events-auto">
+        <div className="absolute top-4 right-4 md:bottom-8 md:right-8">
           <Link to="/home" className="bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors shadow-lg animate-pulse">
             Missão Concluída! Voltar
           </Link>
@@ -233,11 +192,6 @@ export default function ModulePage3D() {
     );
   }
 
-  const moduloParaRenderizar = { 
-    id, 
-    title: moduloData.title, 
-    ...moduloData.simulacao3D 
-  };
-
+  const moduloParaRenderizar = { id, title: moduloData.title, ...moduloData.simulacao3D };
   return <InteractiveModule modulo={moduloParaRenderizar} />;
 }
