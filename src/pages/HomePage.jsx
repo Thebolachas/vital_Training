@@ -8,7 +8,7 @@ const ProgressStatus = ({ user, progress }) => {
   if (!user) {
     return (
       <div className="w-full max-w-4xl mx-auto bg-blue-50 p-6 rounded-xl text-center border border-blue-200">
-        <h3 className="text-xl font-bold text-blue-800 mb-2">Bem-vindo(a) ao TreinaFácil!</h3>
+        <h3 className="text-xl font-bold text-blue-800 mb-2">Bem-vindo(a) ao Treinamento do Monitor fetal iCTG!</h3>
         <p className="text-blue-700">
           <Link to="/login" className="font-bold underline hover:text-blue-900">Faça o login</Link> para salvar seu progresso e ter acesso a todos os módulos.
         </p>
@@ -78,7 +78,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <main className="py-8">
           <div className="text-center mb-10">
-            <h1 className="text-4xl font-black text-gray-800 mb-2">Plataforma de Treinamento iCTG</h1>
+            <h1 className="text-4xl font-black text-gray-800 mb-2">Plataforma de Treinamento do Monitor fetal iCTG</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Escolha um módulo para iniciar seu aprendizado.</p>
           </div>
           <ProgressStatus user={user} progress={progress} />

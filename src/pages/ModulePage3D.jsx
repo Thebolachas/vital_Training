@@ -5,8 +5,8 @@ import { OrbitControls, Text, Loader } from '@react-three/drei';
 import * as THREE from 'three';
 import { modulosData } from '../Data/dadosModulos.jsx';
 
-// (Componentes auxiliares createHeartGeometry, Item, Box, SafeCamera não precisam de alteração)
-const createHeartGeometry=()=> {const s=new THREE.Shape,e=0.04;return s.moveTo(0,-5*e),s.bezierCurveTo(-3*e,-10*e,-10*e,-10*e,-10*e,-2*e),s.bezierCurveTo(-10*e,4*e,-3*e,8*e,0,10*e),s.bezierCurveTo(3*e,8*e,10*e,4*e,10*e,-2*e),s.bezierCurveTo(10*e,-10*e,3*e,-10*e,0,-5*e),new THREE.ExtrudeGeometry(s,{depth:4*e,bevelEnabled:!0,bevelSegments:2,steps:2,bevelSize:1*e,bevelThickness:1*e}).center()};const heartGeometry=createHeartGeometry();function Item({id:s,cor:e,posicao:t,onSelect:o,isTarget:i,selected:a}){const r=useRef();return useEffect(()=>{document.body.style.cursor=i?"pointer":"auto",()=>{document.body.style.cursor="auto"}},[i]),useFrame(n=>{const d=a?.3:0,l=t[1]||0,c=l+d+Math.sin(2*n.clock.getElapsedTime()+t[0])*.05;r.current&&(r.current.position.y=THREE.MathUtils.lerp(r.current.position.y,c,.1),i?r.current.scale.set(1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1):r.current.scale.set(1,1,1))}),<group position={t} onClick={n=>{n.stopPropagation(),o(a?null:s)}}><mesh ref={r} geometry={heartGeometry} rotation-x={-Math.PI/2} castShadow><meshStandardMaterial color={e} roughness={.3} metalness={.2}/></mesh></group>}function Box({onOpen:s,isOpen:e}){const t=useRef();return useFrame(()=>{e&&t.current&&t.current.rotation.x>-Math.PI/1.9&&(t.current.rotation.x=THREE.MathUtils.lerp(t.current.rotation.x,-Math.PI/1.9,.08))}),<group onClick={t=>{t.stopPropagation(),e||s()}}><mesh position={[0,-.15,0]} castShadow receiveShadow><boxGeometry args={[4.8,.3,2]}/><meshStandardMaterial color="#EAEAEA"/></mesh><mesh ref={t} position={[0,0,-1]} castShadow><boxGeometry args={[4.8,.08,2]}/><meshStandardMaterial color="#f472b6" metalness={.1} roughness={.4}/>{!e&&<Text position={[0,.05,0]} rotation={[-Math.PI/2,0,0]} color="white" fontSize={.25} anchorX="center">Clique para Abrir</Text>}</mesh></group>}function SafeCamera(){const{camera:s}=useThree();return useEffect(()=>{s.position.set(0,1.5,7),s.fov=50,s.lookAt(0,0,0),s.updateProjectionMatrix()},[s]),null}
+// (Os componentes auxiliares createHeartGeometry, Item, Box, SafeCamera não precisam de alteração)
+const createHeartGeometry=()=> {const s=new THREE.Shape,e=0.04;return s.moveTo(0,-5*e),s.bezierCurveTo(-3*e,-10*e,-10*e,-10*e,-10*e,-2*e),s.bezierCurveTo(-10*e,4*e,-3*e,8*e,0,10*e),s.bezierCurveTo(3*e,8*e,10*e,4*e,10*e,-2*e),s.bezierCurveTo(10*e,-10*e,3*e,-10*e,0,-5*e),new THREE.ExtrudeGeometry(s,{depth:4*e,bevelEnabled:!0,bevelSegments:2,steps:2,bevelSize:1*e,bevelThickness:1*e}).center()};const heartGeometry=createHeartGeometry();function Item({id:s,cor:e,posicao:t,onSelect:o,isTarget:i,selected:a,isClosing:n}){const d=useRef();return useEffect(()=>{document.body.style.cursor=i?"pointer":"auto",()=>{document.body.style.cursor="auto"}},[i]),useFrame(l=>{const c=a?.3:0,u=t[1]||0,m=u+c+Math.sin(2*l.clock.getElapsedTime()+t[0])*.05;d.current&&(d.current.position.y=THREE.MathUtils.lerp(d.current.position.y,m,.1),n?d.current.scale.lerp(new THREE.Vector3(0,0,0),.15):i?d.current.scale.set(1+Math.sin(5*l.clock.getElapsedTime())*.1,1+Math.sin(5*l.clock.getElapsedTime())*.1,1+Math.sin(5*l.clock.getElapsedTime())*.1):d.current.scale.set(1,1,1))}),<group position={t} onClick={l=>{l.stopPropagation(),o()}}><mesh ref={d} geometry={heartGeometry} rotation-x={-Math.PI/2} castShadow><meshStandardMaterial color={e} roughness={.3} metalness={.2}/></mesh></group>}function Box({onOpen:s,onClose:e,isOpen:t}){const o=useRef();return useFrame(()=>{o.current&&(t?o.current.rotation.x>-Math.PI/1.9&&(o.current.rotation.x=THREE.MathUtils.lerp(o.current.rotation.x,-Math.PI/1.9,.08)):o.current.rotation.x<0&&(o.current.rotation.x=THREE.MathUtils.lerp(o.current.rotation.x,0,.08)))}),<group onClick={i=>{i.stopPropagation(),t?e():s()}}><mesh position={[0,-.15,0]} castShadow receiveShadow><boxGeometry args={[4.8,.3,2]}/><meshStandardMaterial color="#EAEAEA"/></mesh><mesh ref={o} position={[0,0,-1]} castShadow><boxGeometry args={[4.8,.08,2]}/><meshStandardMaterial color="#f472b6" metalness={.1} roughness={.4}/>{!t&&<Text position={[0,.05,0]} rotation={[-Math.PI/2,0,0]} color="white" fontSize={.25} anchorX="center">Clique para Abrir</Text>}</mesh></group>}function SafeCamera(){const{camera:s}=useThree();return useEffect(()=>{s.position.set(0,1.5,7),s.fov=50,s.lookAt(0,0,0),s.updateProjectionMatrix()},[s]),null}
 const MissionCompleteScreen = ({ currentModuleId }) => {
   const allModuleIds = Object.keys(modulosData).filter(id => modulosData[id].simulacao3D);
   const currentIndex = allModuleIds.indexOf(currentModuleId);
@@ -34,28 +34,35 @@ const MissionCompleteScreen = ({ currentModuleId }) => {
 function InteractiveModule({ modulo }) {
   const [taskIndex, setTaskIndex] = useState(0);
   const [isBoxOpen, setBoxOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [missionComplete, setMissionComplete] = useState(false);
   const currentTask = modulo.tasks?.[taskIndex];
 
+  // --- CORREÇÃO: useEffect para detectar o final da missão ---
+  useEffect(() => {
+    // Se a tarefa atual tiver a propriedade 'isFinal', ativamos a tela de conclusão.
+    if (currentTask?.isFinal) {
+      // Usamos um timeout para dar tempo ao usuário de ler a última instrução "Parabéns!"
+      setTimeout(() => {
+        setMissionComplete(true);
+      }, 1200);
+    }
+  }, [currentTask]); // Este efeito roda sempre que a 'currentTask' muda.
+
   const handleSelect = (selectedId) => {
     if (missionComplete || !currentTask || selectedId !== currentTask.target) return;
-    if (currentTask.id === 'abrir_caixa') setBoxOpen(true);
-    if (currentTask.id === 'fechar_caixa') setBoxOpen(false);
 
-    if (taskIndex + 1 < modulo.tasks.length) {
+    if (currentTask.id === 'abrir_caixa') setBoxOpen(true);
+    if (currentTask.id === 'fechar_caixa') setIsClosing(true);
+
+    // Avança para a próxima tarefa
+    if (taskIndex < modulo.tasks.length) {
       setTimeout(() => setTaskIndex(prev => prev + 1), 800);
-    } else {
-      setTimeout(() => setMissionComplete(true), 1200);
     }
   };
   
   return (
-    // --- LAYOUT CORRIGIDO ---
-    // Em telas pequenas (mobile), usa flexbox vertical. Em telas médias ou maiores, volta ao normal.
     <div className="w-screen h-screen flex flex-col md:block bg-gray-900 text-white overflow-hidden">
-      
-      {/* PAINEL DE INFORMAÇÕES */}
-      {/* No mobile, ele tem uma altura fixa de 45%. No desktop, vira um painel flutuante. */}
       <div className="flex-none h-[45%] md:h-auto md:absolute md:top-8 md:left-8 md:max-w-md md:z-20 p-4">
         <div className="bg-black/70 md:backdrop-blur-sm p-4 rounded-xl shadow-2xl h-full overflow-y-auto">
           <h2 className="text-xl md:text-3xl font-bold mb-2">{modulo.title}</h2>
@@ -84,8 +91,6 @@ function InteractiveModule({ modulo }) {
         </div>
       </div>
       
-      {/* CONTAINER DA SIMULAÇÃO 3D */}
-      {/* No mobile, ele cresce para ocupar o espaço restante (55%). No desktop, ocupa a tela toda atrás do painel. */}
       <div className="flex-grow md:absolute md:inset-0 md:z-10">
         <Canvas shadows dpr={[1, 2]}>
           <color attach="background" args={['#1A202C']} />
@@ -95,7 +100,7 @@ function InteractiveModule({ modulo }) {
             <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2.2} minDistance={3} maxDistance={12} target={[0, -0.5, 0]} />
             <SafeCamera />
             <group position-y={-0.5}> 
-              <Box onOpen={() => handleSelect('box')} onClose={() => handleSelect('box')} isOpen={isBoxOpen} />
+              <Box onOpen={() => handleSelect('box')} onClose={() => handleSelect('box')} isOpen={isBoxOpen && !isClosing} />
               {isBoxOpen &&
                 modulo.components.map((comp) => (
                   <Item
@@ -103,6 +108,7 @@ function InteractiveModule({ modulo }) {
                     {...comp}
                     onSelect={() => handleSelect(comp.id)}
                     isTarget={currentTask?.target === comp.id}
+                    isClosing={isClosing}
                   />
                 ))}
             </group>
@@ -115,7 +121,6 @@ function InteractiveModule({ modulo }) {
     </div>
   );
 }
-
 
 export default function ModulePage3D() {
   const { id } = useParams();
