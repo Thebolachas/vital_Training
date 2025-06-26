@@ -3,7 +3,6 @@ import React from 'react';
 export default function Simulacao() {
   return (
     <div className="simulacao-container" style={{ position: 'relative' }}>
-      {/* Canvas ou elemento da simulação 3D */}
       <canvas
         id="simulacao-3d"
         style={{
@@ -16,7 +15,6 @@ export default function Simulacao() {
         }}
       ></canvas>
 
-      {/* Caixa flutuante de orientações */}
       <div
         className="caixa-flutuante"
         style={{
@@ -38,7 +36,6 @@ export default function Simulacao() {
         <p>Leia atentamente as instruções para prosseguir com a simulação.</p>
       </div>
 
-      {/* Botão continuar fixo no rodapé */}
       <button
         className="botao-continuar"
         style={{
@@ -56,7 +53,7 @@ export default function Simulacao() {
           cursor: 'pointer',
         }}
         onClick={() => {
-          alert('Continuar clicado!'); // substituir pela lógica real da simulação
+          alert('Continuar clicado!');
         }}
       >
         Continuar

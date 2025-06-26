@@ -4,6 +4,16 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text, Loader } from '@react-three/drei';
 import * as THREE from 'three';
 import { modulosData } from '../Data/dadosModulos.jsx';
+import React from 'react';
+import Simulacao from '../components/Simulacao.jsx';
+
+export default function ModulePage3D() {
+  return (
+    <div>
+      <Simulacao />
+    </div>
+  );
+}
 
 // (Os componentes auxiliares não precisam de grandes mudanças)
 const createHeartGeometry=()=> {const s=new THREE.Shape,e=0.04;return s.moveTo(0,-5*e),s.bezierCurveTo(-3*e,-10*e,-10*e,-10*e,-10*e,-2*e),s.bezierCurveTo(-10*e,4*e,-3*e,8*e,0,10*e),s.bezierCurveTo(3*e,8*e,10*e,4*e,10*e,-2*e),s.bezierCurveTo(10*e,-10*e,3*e,-10*e,0,-5*e),new THREE.ExtrudeGeometry(s,{depth:4*e,bevelEnabled:!0,bevelSegments:2,steps:2,bevelSize:1*e,bevelThickness:1*e}).center()};const heartGeometry=createHeartGeometry();function Item({id:s,cor:e,posicao:t,onSelect:o,isTarget:i,selected:a}){const r=useRef();return useEffect(()=>{document.body.style.cursor=i?"pointer":"auto",()=>{document.body.style.cursor="auto"}},[i]),useFrame(n=>{const d=a?.3:0,l=t[1]||0,c=l+d+Math.sin(2*n.clock.getElapsedTime()+t[0])*.05;r.current&&(r.current.position.y=THREE.MathUtils.lerp(r.current.position.y,c,.1),i?r.current.scale.set(1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1):r.current.scale.set(1,1,1))}),<group position={t} onClick={n=>{n.stopPropagation(),o(a?null:s)}}><mesh ref={r} geometry={heartGeometry} rotation-x={-Math.PI/2} castShadow><meshStandardMaterial color={e} roughness={.3} metalness={.2}/></mesh></group>}
@@ -146,4 +156,5 @@ export default function ModulePage3D() {
   }
   const moduloParaRenderizar = { id, title: moduloData.title, ...moduloData.simulacao3D };
   return <InteractiveModule modulo={moduloParaRenderizar} />;
+  
 }
