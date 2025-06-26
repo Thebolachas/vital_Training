@@ -5,20 +5,38 @@ import { OrbitControls, Text, Loader } from '@react-three/drei';
 import * as THREE from 'three';
 import { modulosData } from '../Data/dadosModulos.jsx';
 
-const createHeartGeometry=()=> {const s=new THREE.Shape,e=0.04;return s.moveTo(0,-5*e),s.bezierCurveTo(-3*e,-10*e,-10*e,-10*e,-10*e,-2*e),s.bezierCurveTo(-10*e,4*e,-3*e,8*e,0,10*e),s.bezierCurveTo(3*e,8*e,10*e,4*e,10*e,-2*e),s.bezierCurveTo(10*e,-10*e,3*e,-10*e,0,-5*e),new THREE.ExtrudeGeometry(s,{depth:4*e,bevelEnabled:!0,bevelSegments:2,steps:2,bevelSize:1*e,bevelThickness:1*e}).center()};const heartGeometry=createHeartGeometry();function Item({id:s,cor:e,posicao:t,onSelect:o,isTarget:i,selected:a}){const r=useRef();return useEffect(()=>{document.body.style.cursor=i?"pointer":"auto",()=>{document.body.style.cursor="auto"}},[i]),useFrame(n=>{const d=a?.3:0,l=t[1]||0,c=l+d+Math.sin(2*n.clock.getElapsedTime()+t[0])*.05;r.current&&(r.current.position.y=THREE.MathUtils.lerp(r.current.position.y,c,.1),i?r.current.scale.set(1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1):r.current.scale.set(1,1,1))}),<group position={t} onClick={n=>{n.stopPropagation(),o(a?null:s)}}><mesh ref={r} geometry={heartGeometry} rotation-x={-Math.PI/2} castShadow><meshStandardMaterial color={e} roughness={.3} metalness={.2}/></mesh></group>}function Box({onOpen:s,isOpen:e}){const t=useRef();return useFrame(()=>{e&&t.current&&t.current.rotation.x>-Math.PI/1.9&&(t.current.rotation.x=THREE.MathUtils.lerp(t.current.rotation.x,-Math.PI/1.9,.08))}),<group onClick={t=>{t.stopPropagation(),e||s()}}><mesh position={[0,-.15,0]} castShadow receiveShadow><boxGeometry args={[4.8,.3,2]}/><meshStandardMaterial color="#EAEAEA"/></mesh><mesh ref={t} position={[0,0,-1]} castShadow><boxGeometry args={[4.8,.08,2]}/><meshStandardMaterial color="#f472b6" metalness={.1} roughness={.4}/>{!e&&<Text position={[0,.05,0]} rotation={[-Math.PI/2,0,0]} color="white" fontSize={.25} anchorX="center">Clique para Abrir</Text>}</mesh></group>}
+// (Os componentes auxiliares não precisam de grandes mudanças)
+const createHeartGeometry=()=> {const s=new THREE.Shape,e=0.04;return s.moveTo(0,-5*e),s.bezierCurveTo(-3*e,-10*e,-10*e,-10*e,-10*e,-2*e),s.bezierCurveTo(-10*e,4*e,-3*e,8*e,0,10*e),s.bezierCurveTo(3*e,8*e,10*e,4*e,10*e,-2*e),s.bezierCurveTo(10*e,-10*e,3*e,-10*e,0,-5*e),new THREE.ExtrudeGeometry(s,{depth:4*e,bevelEnabled:!0,bevelSegments:2,steps:2,bevelSize:1*e,bevelThickness:1*e}).center()};const heartGeometry=createHeartGeometry();function Item({id:s,cor:e,posicao:t,onSelect:o,isTarget:i,selected:a}){const r=useRef();return useEffect(()=>{document.body.style.cursor=i?"pointer":"auto",()=>{document.body.style.cursor="auto"}},[i]),useFrame(n=>{const d=a?.3:0,l=t[1]||0,c=l+d+Math.sin(2*n.clock.getElapsedTime()+t[0])*.05;r.current&&(r.current.position.y=THREE.MathUtils.lerp(r.current.position.y,c,.1),i?r.current.scale.set(1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1):r.current.scale.set(1,1,1))}),<group position={t} onClick={n=>{n.stopPropagation(),o(a?null:s)}}><mesh ref={r} geometry={heartGeometry} rotation-x={-Math.PI/2} castShadow><meshStandardMaterial color={e} roughness={.3} metalness={.2}/></mesh></group>}
+function Box({ onOpen, isOpen }) {
+  const groupRef = useRef();
+  const lidRef = useRef();
+  
+  useFrame(() => {
+    if (isOpen && lidRef.current.rotation.x > -Math.PI / 1.9) {
+      lidRef.current.rotation.x = THREE.MathUtils.lerp(lidRef.current.rotation.x, -Math.PI / 1.9, 0.08);
+    }
+  });
 
-// --- CÂMERA SIMPLIFICADA PARA GARANTIR VISIBILIDADE ---
-function SafeCamera() {
-  const { camera } = useThree();
-  useEffect(() => {
-    // Posição única e segura que funciona bem em todas as telas
-    camera.position.set(0, 1.5, 7); 
-    camera.fov = 50;
-    camera.lookAt(0, 0, 0); // Garante que a câmera sempre olhe para o centro
-    camera.updateProjectionMatrix();
-  }, [camera]);
-  return null;
+  return (
+    // CORREÇÃO: O evento de clique está no grupo que contém tudo.
+    <group ref={groupRef} onClick={(e) => { e.stopPropagation(); if (!isOpen) onOpen(); }}>
+      <mesh position={[0, -0.15, 0]} castShadow receiveShadow>
+        <boxGeometry args={[4.8, 0.3, 2.0]} />
+        <meshStandardMaterial color="#EAEAEA" />
+      </mesh>
+      <mesh ref={lidRef} position={[0, 0, -1.0]} castShadow>
+        <boxGeometry args={[4.8, 0.08, 2.0]} />
+        <meshStandardMaterial color="#f472b6" metalness={0.1} roughness={0.4} />
+        {!isOpen && (
+          <Text position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} color="white" fontSize={0.25} anchorX="center">
+            Clique para Abrir
+          </Text>
+        )}
+      </mesh>
+    </group>
+  );
 }
+function SafeCamera(){const{camera:s}=useThree();return useEffect(()=>{s.position.set(0,1.5,7),s.fov=50,s.lookAt(0,0,0),s.updateProjectionMatrix()},[s]),null}
 
 function InteractiveModule({ modulo }) {
   const [taskIndex, setTaskIndex] = useState(0);
@@ -29,22 +47,22 @@ function InteractiveModule({ modulo }) {
 
   const handleSelect = (selectedId) => {
     if (missionComplete || !currentTask) return;
-    setSelectedItem(selectedId);
     if (selectedId && selectedId === currentTask.target) {
-      if (currentTask.id === 'abrir_caixa' && !isBoxOpen) setBoxOpen(true);
+      if (currentTask.id === 'abrir_caixa' && !isBoxOpen) {
+        setBoxOpen(true);
+      }
       if (taskIndex + 1 < modulo.tasks.length) {
-          setTimeout(() => {
-              setTaskIndex(taskIndex + 1);
-              setSelectedItem(null);
-          }, 500);
+          setTimeout(() => setTaskIndex(prev => prev + 1), 500);
       } else {
         setTimeout(() => setMissionComplete(true), 800);
       }
     }
+    setSelectedItem(selectedId);
   };
   
   return (
-    <div className="w-screen h-screen relative bg-gray-900 text-white overflow-hidden">
+    // O div principal agora ocupa a tela inteira, sem ser afetado pelo App.css
+    <div className="w-screen h-screen relative bg-gray-900 overflow-hidden">
       <Canvas shadows dpr={[1, 2]}>
         <color attach="background" args={['#1A202C']} />
         <Suspense fallback={null}>
@@ -52,10 +70,8 @@ function InteractiveModule({ modulo }) {
           <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={2} castShadow />
           <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2.2} minDistance={3} maxDistance={12} target={[0, 0, 0]} />
           <SafeCamera />
-
           {!missionComplete && (
-            // --- POSIÇÃO DO GRUPO RESETADA PARA O CENTRO ---
-            <group position-y={0}> 
+            <group position-y={-0.5}> 
               <Box onOpen={() => handleSelect('box')} isOpen={isBoxOpen} />
               {isBoxOpen &&
                 modulo.components.map((comp) => (
@@ -73,9 +89,7 @@ function InteractiveModule({ modulo }) {
       </Canvas>
       <Loader />
 
-      <div className="absolute p-4 w-full 
-                     bottom-0 left-0 
-                     md:top-0 md:left-0 md:bottom-auto md:w-auto md:max-w-md md:p-8">
+      <div className="absolute z-20 p-4 w-full bottom-0 left-0 md:top-0 md:left-0 md:bottom-auto md:w-auto md:max-w-md md:p-8">
         <div className="bg-black bg-opacity-70 backdrop-blur-sm p-6 rounded-xl shadow-2xl">
           {missionComplete ? (
             <div className="text-center">
@@ -86,7 +100,6 @@ function InteractiveModule({ modulo }) {
               </Link>
             </div>
           ) : (
-            // ... (Restante da interface, sem alterações)
             <>
               <h2 className="text-xl md:text-3xl font-bold mb-4">{modulo.title}</h2>
               <h3 className="text-base md:text-xl font-semibold text-cyan-400 mb-1">Tarefa Atual:</h3>
