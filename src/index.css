@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  -webkit-text-size-adjust: 100%; /* prefixo deve vir primeiro */
+  text-size-adjust: 100%;
+}
 
 @layer utilities {
   @keyframes float {
@@ -19,7 +23,6 @@
     animation: float 6s ease-in-out infinite;
   }
 
-
   @keyframes fade-in-up {
     0% {
       opacity: 0;
@@ -33,7 +36,6 @@
   .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out forwards;
   }
-
 
   /* Classe para esconder a barra de scroll */
   .scrollbar-hide::-webkit-scrollbar {
