@@ -5,7 +5,7 @@ import { OrbitControls, Text, Loader } from '@react-three/drei';
 import * as THREE from 'three';
 import { modulosData } from '../Data/dadosModulos.jsx';
 
-// (Os componentes auxiliares createHeartGeometry, Item, Box, SafeCamera não precisam de alteração)
+// (Componentes auxiliares createHeartGeometry, Item, Box, SafeCamera não precisam de alteração)
 const createHeartGeometry=()=> {const s=new THREE.Shape,e=0.04;return s.moveTo(0,-5*e),s.bezierCurveTo(-3*e,-10*e,-10*e,-10*e,-10*e,-2*e),s.bezierCurveTo(-10*e,4*e,-3*e,8*e,0,10*e),s.bezierCurveTo(3*e,8*e,10*e,4*e,10*e,-2*e),s.bezierCurveTo(10*e,-10*e,3*e,-10*e,0,-5*e),new THREE.ExtrudeGeometry(s,{depth:4*e,bevelEnabled:!0,bevelSegments:2,steps:2,bevelSize:1*e,bevelThickness:1*e}).center()};const heartGeometry=createHeartGeometry();function Item({id:s,cor:e,posicao:t,onSelect:o,isTarget:i,selected:a}){const r=useRef();return useEffect(()=>{document.body.style.cursor=i?"pointer":"auto",()=>{document.body.style.cursor="auto"}},[i]),useFrame(n=>{const d=a?.3:0,l=t[1]||0,c=l+d+Math.sin(2*n.clock.getElapsedTime()+t[0])*.05;r.current&&(r.current.position.y=THREE.MathUtils.lerp(r.current.position.y,c,.1),i?r.current.scale.set(1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1,1+Math.sin(5*n.clock.getElapsedTime())*.1):r.current.scale.set(1,1,1))}),<group position={t} onClick={n=>{n.stopPropagation(),o(a?null:s)}}><mesh ref={r} geometry={heartGeometry} rotation-x={-Math.PI/2} castShadow><meshStandardMaterial color={e} roughness={.3} metalness={.2}/></mesh></group>}function Box({onOpen:s,isOpen:e}){const t=useRef();return useFrame(()=>{e&&t.current&&t.current.rotation.x>-Math.PI/1.9&&(t.current.rotation.x=THREE.MathUtils.lerp(t.current.rotation.x,-Math.PI/1.9,.08))}),<group onClick={t=>{t.stopPropagation(),e||s()}}><mesh position={[0,-.15,0]} castShadow receiveShadow><boxGeometry args={[4.8,.3,2]}/><meshStandardMaterial color="#EAEAEA"/></mesh><mesh ref={t} position={[0,0,-1]} castShadow><boxGeometry args={[4.8,.08,2]}/><meshStandardMaterial color="#f472b6" metalness={.1} roughness={.4}/>{!e&&<Text position={[0,.05,0]} rotation={[-Math.PI/2,0,0]} color="white" fontSize={.25} anchorX="center">Clique para Abrir</Text>}</mesh></group>}function SafeCamera(){const{camera:s}=useThree();return useEffect(()=>{s.position.set(0,1.5,7),s.fov=50,s.lookAt(0,0,0),s.updateProjectionMatrix()},[s]),null}
 const MissionCompleteScreen = ({ currentModuleId }) => {
   const allModuleIds = Object.keys(modulosData).filter(id => modulosData[id].simulacao3D);
@@ -34,7 +34,6 @@ const MissionCompleteScreen = ({ currentModuleId }) => {
 function InteractiveModule({ modulo }) {
   const [taskIndex, setTaskIndex] = useState(0);
   const [isBoxOpen, setBoxOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
   const [missionComplete, setMissionComplete] = useState(false);
   const currentTask = modulo.tasks?.[taskIndex];
 
@@ -44,27 +43,27 @@ function InteractiveModule({ modulo }) {
     if (currentTask.id === 'fechar_caixa') setBoxOpen(false);
 
     if (taskIndex + 1 < modulo.tasks.length) {
-        setTimeout(() => setTaskIndex(prev => prev + 1), 800);
+      setTimeout(() => setTaskIndex(prev => prev + 1), 800);
     } else {
       setTimeout(() => setMissionComplete(true), 1200);
     }
-    setSelectedItem(selectedId);
   };
   
   return (
-    <div className="w-screen h-screen bg-gray-900 text-white">
+    // --- LAYOUT CORRIGIDO ---
+    // Em telas pequenas (mobile), usa flexbox vertical. Em telas médias ou maiores, volta ao normal.
+    <div className="w-screen h-screen flex flex-col md:block bg-gray-900 text-white overflow-hidden">
       
-      {/* --- ALTERAÇÃO NO LAYOUT --- */}
-      {/* O container da UI agora é um elemento separado, no topo em telas mobile */}
-      <div className="h-2/5 md:h-auto md:absolute md:p-8 md:top-0 md:left-0 md:w-auto md:max-w-md z-20 flex flex-col justify-center bg-gray-900 md:bg-transparent">
-        <div className="bg-black md:bg-opacity-70 md:backdrop-blur-sm p-4 md:p-6 rounded-none md:rounded-xl shadow-2xl overflow-y-auto">
+      {/* PAINEL DE INFORMAÇÕES */}
+      {/* No mobile, ele tem uma altura fixa de 45%. No desktop, vira um painel flutuante. */}
+      <div className="flex-none h-[45%] md:h-auto md:absolute md:top-8 md:left-8 md:max-w-md md:z-20 p-4">
+        <div className="bg-black/70 md:backdrop-blur-sm p-4 rounded-xl shadow-2xl h-full overflow-y-auto">
           <h2 className="text-xl md:text-3xl font-bold mb-2">{modulo.title}</h2>
           <h3 className="text-base md:text-xl font-semibold text-cyan-400 mb-1">Tarefa Atual:</h3>
           <p className="text-sm md:text-lg mb-4">{currentTask?.prompt}</p>
           {currentTask?.teoria && (
             <div className="mt-2 border-t border-gray-600 pt-2 text-xs md:text-base">
-              <p className="font-bold text-green-400">INFO:</p>
-              <p>{currentTask.teoria}</p>
+              <p className="font-bold text-green-400">INFO:</p><p>{currentTask.teoria}</p>
             </div>
           )}
           <div className="mt-4">
@@ -72,7 +71,7 @@ function InteractiveModule({ modulo }) {
             <ul className="space-y-1 text-xs">
               {modulo.tasks?.map((task, index) => (
                 <li key={task.id} className={`transition-all ${
-                    index < taskIndex ? 'text-green-400 opacity-70 line-through' :
+                    index < taskIndex ? 'text-green-400/70 line-through' :
                     index === taskIndex ? 'text-cyan-300 font-bold' :
                     'text-gray-400'
                   }`}
@@ -85,14 +84,15 @@ function InteractiveModule({ modulo }) {
         </div>
       </div>
       
-      {/* O container do Canvas agora ocupa a parte de baixo no mobile */}
-      <div className="h-3/5 md:h-full w-full relative">
+      {/* CONTAINER DA SIMULAÇÃO 3D */}
+      {/* No mobile, ele cresce para ocupar o espaço restante (55%). No desktop, ocupa a tela toda atrás do painel. */}
+      <div className="flex-grow md:absolute md:inset-0 md:z-10">
         <Canvas shadows dpr={[1, 2]}>
           <color attach="background" args={['#1A202C']} />
           <Suspense fallback={null}>
             <ambientLight intensity={1.2} />
             <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={2} castShadow />
-            <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2.2} minDistance={3} maxDistance={12} target={[0, 0, 0]} />
+            <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2.2} minDistance={3} maxDistance={12} target={[0, -0.5, 0]} />
             <SafeCamera />
             <group position-y={-0.5}> 
               <Box onOpen={() => handleSelect('box')} onClose={() => handleSelect('box')} isOpen={isBoxOpen} />
@@ -102,8 +102,7 @@ function InteractiveModule({ modulo }) {
                     key={comp.id}
                     {...comp}
                     onSelect={() => handleSelect(comp.id)}
-                    isTarget={!selectedItem && currentTask?.target === comp.id}
-                    selected={selectedItem === comp.id}
+                    isTarget={currentTask?.target === comp.id}
                   />
                 ))}
             </group>
@@ -129,6 +128,5 @@ export default function ModulePage3D() {
       </div>
     );
   }
-  const moduloParaRenderizar = { id, title: moduloData.title, ...moduloData.simulacao3D };
-  return <InteractiveModule modulo={moduloParaRenderizar} />;
+  return <InteractiveModule modulo={{ id, ...moduloData.simulacao3D, title: moduloData.title }} />;
 }
