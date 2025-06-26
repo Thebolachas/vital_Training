@@ -1,5 +1,5 @@
 import React, { useState, useContext, createContext, useEffect } from 'react';
-import { auth, db } from '../firebaseConfig'; // Importar do nosso arquivo de config
+import { auth, db } from '../firebaseConfig';
 import { signInAnonymously, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -7,31 +7,39 @@ const UserContext = createContext();
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Estado para saber se a autenticação está carregando
+  // O 'loading' agora representa todo o processo de verificação de auth + perfil
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Este é o 'vigia' do Firebase. Ele roda sempre que o status de login muda.
+    // onAuthStateChanged é o vigia do Firebase para status de login
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Usuário está logado. Vamos buscar os dados dele (nome e perfil) no Firestore.
+      if (firebaseUser && firebaseUser.displayName) {
+        // Se o Firebase diz que o usuário está logado E JÁ TEM UM NOME DEFINIDO...
+        
+        // ...buscamos os dados extras dele (o perfil/role) no Firestore.
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
+        
         if (userDoc.exists()) {
-          // Combina os dados do Auth e do Firestore
+          // Se encontramos o documento, criamos o objeto de usuário completo
           setUser({
             uid: firebaseUser.uid,
             name: firebaseUser.displayName,
-            ...userDoc.data() // Pega o 'role' que salvamos
+            role: userDoc.data().role 
           });
+        } else {
+          // Se não encontramos (caso raro de erro), consideramos deslogado
+          setUser(null);
         }
       } else {
-        // Usuário deslogou
+        // Se não há usuário no Firebase, o usuário está deslogado.
         setUser(null);
       }
-      setLoading(false); // Terminou de carregar
+      // Só terminamos o carregamento DEPOIS de todo o processo
+      setLoading(false);
     });
 
-    return () => unsubscribe(); // Limpa o 'vigia' ao desmontar o componente
+    return () => unsubscribe(); // Limpeza do listener
   }, []);
 
   const login = async (name, role) => {
@@ -39,24 +47,24 @@ export function UserProvider({ children }) {
       const userCredential = await signInAnonymously(auth);
       const firebaseUser = userCredential.user;
 
-      // Salva o nome no perfil de autenticação
+      // 1. Salva o nome no perfil de autenticação do Firebase
       await updateProfile(firebaseUser, { displayName: name });
       
-      // Salva o perfil (role) e o nome em um documento separado no Firestore
-      // Usamos o ID único do usuário (uid) como nome do documento
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
+      // 2. Salva o perfil (role) e o nome no banco de dados Firestore,
+      //    usando o ID único (uid) como chave do documento.
+      await setDoc(doc(db, "users", firebaseUser.uid), {
         name: name,
         role: role,
       });
 
-      // Atualiza o estado local do usuário
+      // 3. Atualiza o estado local para uma resposta imediata da UI
       setUser({
         uid: firebaseUser.uid,
         name: name,
         role: role,
       });
     } catch (error) {
-      console.error("Erro ao fazer login anônimo:", error);
+      console.error("Erro ao fazer login:", error);
     }
   };
 
@@ -64,14 +72,10 @@ export function UserProvider({ children }) {
     await signOut(auth);
   };
 
-  // Não renderiza o app enquanto a autenticação inicial não for checada
-  if (loading) {
-    return <div className="w-screen h-screen flex items-center justify-center"><p>Carregando...</p></div>;
-  }
-  
   return (
     <UserContext.Provider value={{ user, login, logout, loading }}>
-      {children}
+      {/* O '!loading' garante que os filhos só renderizem após a verificação inicial */}
+      {!loading && children}
     </UserContext.Provider>
   );
 }
