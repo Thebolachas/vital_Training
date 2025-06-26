@@ -85,7 +85,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <main className="py-8">
             <div className="text-center mb-10">
-              <h1 className="text-4xl font-black text-gray-800 mb-2">Plataforma de Treinamento iCTG</h1>
+              <h1 className="text-4xl font-black text-gray-800 mb-2">Plataforma de Treinamento monitor fetal iCTG</h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">Escolha um módulo para iniciar seu aprendizado.</p>
             </div>
             
