@@ -98,11 +98,11 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-black text-gray-800">Dashboard do Desenvolvedor</h1>
           <p className="text-gray-500">Visão geral do progresso e feedback dos usuários.</p>
         </div>
-        <div className="flex gap-4">
-          <button onClick={fetchData} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-blue-300">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+          <button onClick={fetchData} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-blue-300 w-full sm:w-auto">
             {isLoading ? 'Atualizando...' : 'Atualizar Dados'}
           </button>
-          <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">
+          <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg w-full sm:w-auto">
             Logout
           </button>
         </div>
