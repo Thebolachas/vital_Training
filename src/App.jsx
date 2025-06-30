@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { UserProvider } from './Context/UserContext.jsx';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { UserProvider, useUser } from './Context/UserContext.jsx';
 import { ProgressProvider } from './Context/ProgressContext.jsx';
 
 import IntroPage from './pages/IntroPage.jsx';
@@ -9,7 +9,7 @@ import HomePage from './pages/HomePage.jsx';
 import ModulePage2D from './pages/ModulePage2D.jsx';
 import ModulePage3D from './pages/ModulePage3D.jsx';
 import CertificatePage from './pages/CertificatePage.jsx';
-import DashboardPage from './pages/DashboardPage.jsx'; // Importar a nova página
+import DashboardPage from './pages/DashboardPage.jsx';
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -21,24 +21,44 @@ const NotFoundPage = () => (
   </div>
 );
 
+// Componente de proteção para a rota do dashboard
+const ProtectedRoutes = () => {
+  const { user, loading } = useUser();
+
+  if (loading) {
+    return <div className="p-10 text-center">Verificando autenticação...</div>;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<IntroPage />} />
+      <Route path="/login" element={<RegistrationPage />} />
+      <Route path="/home" element={<HomePage />} />
+      <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
+      <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
+      <Route path="/certificate" element={<CertificatePage />} />
+      
+      {/* Rota protegida para desenvolvedor */}
+      <Route
+        path="/dashboard"
+        element={
+          user?.role === 'Desenvolvedor'
+            ? <DashboardPage />
+            : <Navigate to="/home" replace />
+        }
+      />
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+};
+
 export default function App() {
   return (
     <UserProvider>
       <ProgressProvider>
         <Router>
-          <Routes>
-            <Route path="/" element={<IntroPage />} />
-            <Route path="/login" element={<RegistrationPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
-            <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
-            <Route path="/certificate" element={<CertificatePage />} />
-            
-            {/* ROTA NOVA PARA O DASHBOARD */}
-            <Route path="/dashboard" element={<DashboardPage />} />
-
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <ProtectedRoutes />
         </Router>
       </ProgressProvider>
     </UserProvider>
