@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../Context/UserContext.jsx';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
@@ -22,24 +22,37 @@ const TestimonialCard = ({ feedback }) => {
 };
 
 export default function DashboardPage() {
-  const { user, loading: authLoading } = useUser();
+  const { user, logout, loading: authLoading } = useUser();
   const navigate = useNavigate();
   const [allUserData, setAllUserData] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
   const [roleData, setRoleData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) return;
+      if (user.role === 'Desenvolvedor') {
+        fetchData();
+      } else {
+        navigate('/home');
+      }
+    }
+  }, [user, authLoading, navigate]);
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const usersSnapshot = await getDocs(collection(db, 'users'));
       const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
       const progressSnapshot = await getDocs(collection(db, 'progress'));
       const progressMap = {};
       progressSnapshot.forEach(doc => { progressMap[doc.id] = doc.data(); });
+
       const combinedData = usersList.map(u => ({ ...u, progress: progressMap[u.id] || {} }));
       setAllUserData(combinedData);
-      
+
       const feedbacksSnapshot = await getDocs(collection(db, 'feedbacks'));
       setFeedbacks(feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
@@ -52,16 +65,6 @@ export default function DashboardPage() {
       setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    if (!authLoading) {
-      if (user?.role === 'Desenvolvedor') {
-        fetchData();
-      } else {
-        navigate('/home');
-      }
-    }
-  }, [user, authLoading, navigate]);
 
   const handleDeleteUser = async (userToDelete) => {
     if (window.confirm(`Tem certeza que deseja deletar o usuário "${userToDelete.name}" e todo o seu progresso?`)) {
@@ -76,41 +79,35 @@ export default function DashboardPage() {
       }
     }
   };
-  
-  const handleLogout = () => { logout(); navigate('/login'); };
 
-  if (authLoading) {
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  if (authLoading || !user) {
     return <div className="p-8 text-center">Verificando autenticação...</div>;
   }
-  
+
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
   return (
     <div className="p-4 sm:p-8 bg-gray-100 min-h-screen">
-      <header className="bg-white p-4 rounded-xl shadow-md mb-8 flex justify-between items-center">
+      <header className="bg-white p-4 rounded-xl shadow-md mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-800">Dashboard do Desenvolvedor</h1>
           <p className="text-gray-500">Visão geral do progresso e feedback dos usuários.</p>
         </div>
-        {/* --- ÁREA DOS BOTÕES ATUALIZADA --- */}
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={fetchData} 
-            disabled={isLoading}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-          >
+        <div className="flex gap-4">
+          <button onClick={fetchData} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-blue-300">
             {isLoading ? 'Atualizando...' : 'Atualizar Dados'}
           </button>
-          <button 
-            onClick={handleLogout} 
-            disabled={isLoading}
-            className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-red-300"
-          >
+          <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">
             Logout
           </button>
         </div>
       </header>
-      
+
       {isLoading ? (
         <div className="text-center p-10">Carregando dados...</div>
       ) : (
@@ -129,8 +126,8 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
             <div className="bg-white p-6 rounded-xl shadow flex flex-col justify-center items-center">
-                <h3 className="text-lg font-semibold text-gray-500">Usuários Totais</h3>
-                <p className="text-7xl font-bold text-blue-600">{allUserData.length}</p>
+              <h3 className="text-lg font-semibold text-gray-500">Usuários Totais</h3>
+              <p className="text-7xl font-bold text-blue-600">{allUserData.length}</p>
             </div>
           </div>
 
