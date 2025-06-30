@@ -55,13 +55,22 @@ export default function RegistrationPage() {
             </div>
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Função</label>
-              <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                <option>Enfermagem</option> 
-                <option>Médico(a)</option>
-                <option>Residente</option>
-                <option>Estudante</option>
-                <option>Desenvolvedor</option>
-              </select>
+              <select
+  id="role"
+  value={role}
+  onChange={(e) => setRole(e.target.value)}
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+>
+
+              <option>Enfermagem</option> 
+              <option>Médico(a)</option>
+              <option>Residente</option>
+              <option>Estudante</option>
+              <option>Desenvolvedor</option>
+              <option>Outro</option> {/* ⬅️ NOVO */}
+</select>
+
+              
             </div>
             <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors transform hover:scale-105">Entrar no Treinamento</button>
           </form>

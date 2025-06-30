@@ -4,8 +4,6 @@ import { modulosData } from '../Data/dadosModulos.jsx';
 import { useUser } from '../Context/UserContext.jsx';
 import { useProgress } from '../Context/ProgressContext.jsx';
 
-
-// O componente ImagemExplicativa não precisa de alterações
 function ImagemExplicativa({ imagens, onGoToQuiz, moduloId }) {
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -21,6 +19,7 @@ function ImagemExplicativa({ imagens, onGoToQuiz, moduloId }) {
       </div>
     );
   }
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -46,19 +45,19 @@ function ImagemExplicativa({ imagens, onGoToQuiz, moduloId }) {
   );
 }
 
-
 function Quiz({ questions, moduleId }) {
   const navigate = useNavigate();
   const { user } = useUser();
   const { progress, saveQuizResult } = useProgress();
-  
+
   const [indice, setIndice] = useState(0);
   const [acertos, setAcertos] = useState(0);
   const [respondido, setRespondido] = useState(false);
   const [selecionado, setSelecionado] = useState(null);
   const [quizFinalizado, setQuizFinalizado] = useState(false);
   const [showCertificateButton, setShowCertificateButton] = useState(false);
-  
+  const [podeRefazer, setPodeRefazer] = useState(false);
+
   const perguntaAtual = questions[indice];
 
   const verificarResposta = (i) => {
@@ -72,12 +71,14 @@ function Quiz({ questions, moduleId }) {
 
   const handleFinishQuiz = () => {
     const finalScore = respondido ? (selecionado === perguntaAtual.correta ? acertos + 1 : acertos) : acertos;
-    const updatedProgress = { 
-      ...progress, 
-      [moduleId]: { completed: true, score: finalScore, totalQuestions: questions.length } 
-    };
+    const acertouTudo = finalScore === questions.length;
 
-    saveQuizResult(moduleId, finalScore, questions.length);
+    if (acertouTudo) {
+      saveQuizResult(moduleId, finalScore, questions.length);
+    } else {
+      setPodeRefazer(true);
+    }
+
     setQuizFinalizado(true);
 
     const baseModulesRequired = ['1', '2', '3'];
@@ -87,11 +88,11 @@ function Quiz({ questions, moduleId }) {
 
     let allRequiredDone = false;
     if (isPrivilegedUser && moduleId === '5') {
-      allRequiredDone = advancedModulesRequired.every(id => updatedProgress[id]?.completed);
+      allRequiredDone = advancedModulesRequired.every(id => progress[id]?.completed);
     } else if (user?.role === 'Enfermagem' && moduleId === '3') {
-      allRequiredDone = baseModulesRequired.every(id => updatedProgress[id]?.completed);
+      allRequiredDone = baseModulesRequired.every(id => progress[id]?.completed);
     }
-    
+
     if (allRequiredDone) {
       setShowCertificateButton(true);
     }
@@ -106,50 +107,67 @@ function Quiz({ questions, moduleId }) {
       handleFinishQuiz();
     }
   };
-  
+
+  const refazerQuiz = () => {
+    setIndice(0);
+    setAcertos(0);
+    setRespondido(false);
+    setSelecionado(null);
+    setQuizFinalizado(false);
+    setPodeRefazer(false);
+  };
+
   if (quizFinalizado) {
     return (
       <div className="max-w-xl mx-auto p-8 bg-white rounded-xl shadow-lg text-center animate-fade-in-up">
-          <h2 className="text-2xl font-bold mb-4 text-blue-600">Módulo Concluído!</h2>
-          <p className="text-lg mb-6">Você acertou {acertos} de {questions.length} perguntas.</p>
-          
-          {showCertificateButton && (
-            <Link 
-              to="/certificate"
-              className="w-full block bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl mb-4"
-            >
-              Gerar Certificado de Conclusão
-            </Link>
-          )}
+        <h2 className="text-2xl font-bold mb-4 text-blue-600">Módulo Concluído!</h2>
+        <p className="text-lg mb-6">Você acertou {acertos} de {questions.length} perguntas.</p>
 
+        {podeRefazer && (
           <button
-            onClick={() => navigate('/home')}
-            className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={refazerQuiz}
+            className="w-full mb-4 bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-yellow-600 transition-colors"
           >
-            Voltar à Seleção de Módulos
+            Refazer Quiz
           </button>
+        )}
+
+        {showCertificateButton && (
+          <Link
+            to="/certificate"
+            className="w-full block bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl mb-4"
+          >
+            Gerar Certificado de Conclusão
+          </Link>
+        )}
+
+        <button
+          onClick={() => navigate('/home')}
+          className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Voltar à Seleção de Módulos
+        </button>
       </div>
     );
   }
 
-  // --- CORREÇÃO: O CÓDIGO JSX QUE FALTAVA ESTÁ ABAIXO ---
   return (
     <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-lg">
       <p className="text-sm text-gray-500 mb-2">Pergunta {indice + 1} de {questions.length}</p>
       <h2 className="text-xl font-bold mb-4">{perguntaAtual.pergunta}</h2>
       <div className="space-y-3">
         {perguntaAtual.opcoes.map((op, i) => (
-          <button 
-            key={i} 
-            onClick={() => verificarResposta(i)} 
-            disabled={respondido} 
+          <button
+            key={i}
+            onClick={() => verificarResposta(i)}
+            disabled={respondido}
             className={`block w-full text-left p-4 rounded-lg border-2 transition-all text-gray-700 ${
-              respondido 
-                ? i === perguntaAtual.correta 
-                  ? 'bg-green-100 border-green-500 font-bold' 
-                  : i === selecionado 
-                    ? 'bg-red-100 border-red-500' 
-                    : 'bg-gray-100 border-gray-300' 
+              respondido
+                ? i === perguntaAtual.correta
+                  ? 'bg-green-100 border-green-500 font-bold'
+                  : i === selecionado
+                    ? 'bg-red-100 border-red-500'
+                    : 'bg-gray-100 border-gray-300'
                 : 'bg-white border-gray-300 hover:bg-blue-50 hover:border-blue-400'
             }`}
           >
@@ -164,8 +182,8 @@ function Quiz({ questions, moduleId }) {
         </div>
       )}
       {respondido && (
-        <button 
-          onClick={proxima} 
+        <button
+          onClick={proxima}
           className="mt-6 w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
         >
           {indice + 1 < questions.length ? 'Próxima Pergunta' : 'Ver Resultado Final'}
@@ -175,26 +193,27 @@ function Quiz({ questions, moduleId }) {
   );
 }
 
-
 function ModuleContainer({ modulo }) {
   const [etapa, setEtapa] = useState("teoria");
   const abas = ["teoria", "imagens", "quiz"];
   const activeTabClasses = { blue: 'border-b-4 border-blue-500 text-blue-600', pink: 'border-b-4 border-pink-500 text-pink-600', purple: 'border-b-4 border-purple-500 text-purple-600', teal: 'border-b-4 border-teal-500 text-teal-600' };
-  const renderEtapa = () => { switch (etapa) { case "teoria": return modulo.teoria(); case "imagens": return <ImagemExplicativa imagens={modulo.imagens} onGoToQuiz={() => setEtapa('quiz')} moduloId={modulo.id} />; case "quiz": return <Quiz questions={modulo.quiz} moduleId={modulo.id} />; default: return null; } };
-  
+  const renderEtapa = () => {
+    switch (etapa) {
+      case "teoria": return modulo.teoria();
+      case "imagens": return <ImagemExplicativa imagens={modulo.imagens} onGoToQuiz={() => setEtapa('quiz')} moduloId={modulo.id} />;
+      case "quiz": return <Quiz questions={modulo.quiz} moduleId={modulo.id} />;
+      default: return null;
+    }
+  };
+
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-inner">
       <div className="mb-6 flex justify-center border-b-2 border-gray-200">
         {abas.map(aba => {
-          if (modulo[aba] === undefined || (Array.isArray(modulo[aba]) && modulo[aba].length === 0)) {
-              return null;
-          }
-          let tabLabel;
-          if (aba === 'imagens') {
-            tabLabel = modulo.id === 'médico' ? 'Análise de Imagem (estudo de caso)' : 'Imagens Explicativas';
-          } else {
-            tabLabel = aba.charAt(0).toUpperCase() + aba.slice(1);
-          }
+          if (modulo[aba] === undefined || (Array.isArray(modulo[aba]) && modulo[aba].length === 0)) return null;
+          let tabLabel = aba === 'imagens'
+            ? modulo.id === 'médico' ? 'Análise de Imagem (estudo de caso)' : 'Imagens Explicativas'
+            : aba.charAt(0).toUpperCase() + aba.slice(1);
           return (
             <button
               key={aba}
@@ -214,11 +233,16 @@ function ModuleContainer({ modulo }) {
 export default function ModulePage2D() {
   const { id } = useParams();
   const moduloData = modulosData[id];
-  if (!moduloData || !moduloData.teoria2D) { return <div className="text-center p-10"><h2>Conteúdo não encontrado ou indisponível.</h2><Link to="/">Voltar</Link></div>; }
+  if (!moduloData || !moduloData.teoria2D) {
+    return <div className="text-center p-10"><h2>Conteúdo não encontrado ou indisponível.</h2><Link to="/">Voltar</Link></div>;
+  }
   const moduloParaRenderizar = { id, title: moduloData.title, color: moduloData.color, ...moduloData.teoria2D };
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
-      <header className="flex justify-between items-center mb-10 pb-4 border-b-2 border-gray-200"><h1 className="text-3xl font-bold text-gray-800">{moduloData.title}</h1><Link to="/home" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Voltar</Link></header>
+      <header className="flex justify-between items-center mb-10 pb-4 border-b-2 border-gray-200">
+        <h1 className="text-3xl font-bold text-gray-800">{moduloData.title}</h1>
+        <Link to="/home" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Voltar</Link>
+      </header>
       <main><ModuleContainer modulo={moduloParaRenderizar} /></main>
     </div>
   );

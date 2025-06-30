@@ -21,12 +21,11 @@ const NotFoundPage = () => (
   </div>
 );
 
-// Componente de proteção para a rota do dashboard
 const ProtectedRoutes = () => {
   const { user, loading } = useUser();
 
   if (loading) {
-    return <div className="p-10 text-center">Verificando autenticação...</div>;
+    return <div className="p-8 text-center">Verificando autenticação...</div>;
   }
 
   return (
@@ -37,8 +36,6 @@ const ProtectedRoutes = () => {
       <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
       <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
       <Route path="/certificate" element={<CertificatePage />} />
-      
-      {/* Rota protegida para desenvolvedor */}
       <Route
         path="/dashboard"
         element={
@@ -47,7 +44,6 @@ const ProtectedRoutes = () => {
             : <Navigate to="/home" replace />
         }
       />
-
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
