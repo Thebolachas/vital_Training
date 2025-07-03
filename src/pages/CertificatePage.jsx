@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
     fontFamily: 'Helvetica',
-    color: '#000000', // Pre
+    color: '#000000', // Preto 
   },
   participantName: { // Nome do participante
     fontSize: 36, // Grande
@@ -111,7 +111,7 @@ const CertificatePDF = ({ userName }) => {
 
             {/* Descrição do treinamento com data dinâmica */}
             <Text style={styles.trainingDescription}>
-              no treinamento do Projeto Implementação da Cardiotocografia Móvel no SUS - melhoria da assistência ao feto e redução da mortalidade neonatal, utilizando dispositivos vestíveis de cardiotocografia no período de XX de janeiro a XX de dezembro de {currentYear} totalizando 1 hora de dedicação.
+              no treinamento do Projeto Implementação da Cardiotocografia Móvel no SUS - melhoria da assistência ao feto e redução da mortalidade neonatal, utilizando dispositivos vestíveis de cardiotocografia no período de {currentDate}  totalizando 1 hora de dedicação.
             </Text>
           </View>
         </View>
