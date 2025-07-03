@@ -1,12 +1,13 @@
+// src/Context/ProgressContext.jsx
 import React, { useState, useContext, createContext, useEffect, useCallback } from 'react';
-import { useUser } from './UserContext';
+import { useUser } from './UserContext';  // Certificando-se que useUser está importado corretamente
 import { db } from '../firebaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const ProgressContext = createContext();
 
 export function ProgressProvider({ children }) {
-  const { user } = useUser();
+  const { user } = useUser();  // Usando o hook useUser para obter o usuário
   const [progress, setProgress] = useState({});
 
   // Efeito para CARREGAR o progresso do Firestore quando o usuário loga
@@ -30,7 +31,7 @@ export function ProgressProvider({ children }) {
     if (user && user.uid) {
       const progressDocRef = doc(db, 'progress', user.uid);
       try {
-        await setDoc(progressDocRef, newProgress, { merge: true }); // 'merge: true' atualiza sem sobrescrever tudo
+        await setDoc(progressDocRef, newProgress, { merge: true });
       } catch (error) {
         console.error("Erro ao salvar progresso:", error);
       }
@@ -46,7 +47,7 @@ export function ProgressProvider({ children }) {
     setProgress(newProgressState);
     saveProgress(newProgressState);
   };
-  
+
   const value = { progress, saveQuizResult };
 
   return (

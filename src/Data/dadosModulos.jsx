@@ -66,22 +66,22 @@ export const modulosData = {
       teoria2D: {
         teoria: () => (
             <div className="bg-white p-8 rounded-xl shadow-lg text-gray-800 space-y-6">
+              <div>
+                  <h3 className="text-xl font-bold mb-2 text-blue-700">1. Carregando os Dispositivos</h3>
+                  <p>Antes de usar, carregue o monitor fetal portátil CTG. Conecte o adaptador de energia, o cabo de ramificação e o adaptador de conversão. Em seguida, conecte à porta de carregamento dos transdutores. A luz laranja indica o início do carregamento e levará cerca de uma hora para ser concluído. A luz ficará verde quando o dispositivo estiver totalmente carregado. Lembre-se de carregar também o tablet ou smartphone.</p>
+              </div>
+              <div>
+                  <h3 className="text-xl font-bold mb-2 text-blue-700">2. Registro de Paciente</h3>
+                  <p>Ligue o tablet e inicie o aplicativo Petit CTG. Primeiro, registre as informações do paciente. No menu, selecione a tela 'Lista de Pacientes' e use o botão 'Adicionar' (+) no canto superior direito. Preencha as informações e toque no botão 'Salvar'. Após salvar, selecione o paciente na lista para garantir que suas informações sejam exibidas na tela principal.</p>
+              </div>
                 <div>
-                    <h3 className="text-xl font-bold mb-2 text-blue-700">1. Carregando os Dispositivos</h3>
-                    <p>Antes de usar, carregue o monitor fetal portátil CTG. Conecte o adaptador de energia, o cabo de ramificação e o adaptador de conversão. Em seguida, conecte à porta de carregamento dos transdutores. A luz laranja indica o início do carregamento e levará cerca de uma hora para ser concluído. A luz ficará verde quando o dispositivo estiver totalmente carregado. Lembre-se de carregar também o tablet ou smartphone.</p>
-                </div>
+                  <h3 className="text-xl font-bold mb-2 text-blue-700">3. Conectando os Transdutores</h3>
+                  <p>Pressione e segure o botão de energia de cada transdutor por cerca de três segundos para ligá-los. Verifique a conexão Bluetooth no aplicativo: um ícone de coração com um 'check' indica que a conexão foi bem-sucedida. Se não houver um 'check', aguarde ou reinicie os transdutores.</p>
+              </div>
                 <div>
-                    <h3 className="text-xl font-bold mb-2 text-blue-700">2. Registro de Paciente</h3>
-                    <p>Ligue o tablet e inicie o aplicativo Petit CTG. Primeiro, registre as informações do paciente. No menu, selecione a tela 'Lista de Pacientes' e use o botão 'Adicionar' (+) no canto superior direito. Preencha as informações e toque no botão 'Salvar'. Após salvar, selecione o paciente na lista para garantir que suas informações sejam exibidas na tela principal.</p>
-                </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2 text-blue-700">3. Conectando os Transdutores</h3>
-                    <p>Pressione e segure o botão de energia de cada transdutor por cerca de três segundos para ligá-los. Verifique a conexão Bluetooth no aplicativo: um ícone de coração com um 'check' indica que a conexão foi bem-sucedida. Se não houver um 'check', aguarde ou reinicie os transdutores.</p>
-                </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2 text-blue-700">4. Verificação dos Ícones de Status</h3>
-                    <p>Antes de iniciar a medição, verifique os ícones na tela. As baterias dos transdutores e do tablet devem estar verdes. Se estiverem vermelhas, o nível de bateria está baixo. A conexão com a internet também deve estar verde para garantir o envio dos dados após a medição.</p>
-                </div>
+                  <h3 className="text-xl font-bold mb-2 text-blue-700">4. Verificação dos Ícones de Status</h3>
+                  <p>Antes de iniciar a medição, verifique os ícones na tela. As baterias dos transdutores e do tablet devem estar verdes. Se estiverem vermelhas, o nível de bateria está baixo. A conexão com a internet também deve estar verde para garantir o envio dos dados após a medição.</p>
+              </div>
             </div>
         ),
         imagens: [
@@ -116,22 +116,22 @@ export const modulosData = {
       teoria2D: {
         teoria: () => (
             <div className="bg-white p-8 rounded-xl shadow-lg text-gray-800 space-y-6">
-                <div>
-                    <h3 className="text-xl font-bold mb-2 text-green-700">1. Preparação e Aplicação do Gel</h3>
-                    <p>Prepare a cinta de fixação. Aplique o gel de contato apenas no monitor de frequência cardíaca (FHR - rosa). Para o monitor de contrações uterinas (TOCO - azul), não é necessário aplicar gel.</p>
-                </div>
-                <div>
-                    <h3 className="text-xl font-bold mb-2 text-green-700">2. Posicionamento e Fixação</h3>
-                    <p>Posicione o monitor FHR no abdômen, movendo-o até encontrar o ponto onde o som do batimento cardíaco fetal é mais nítido. Passe o gancho do transdutor pelo furo da cinta e puxe as duas pontas com força igual para fixar, sem apertar excessivamente. O transdutor TOCO deve ser posicionado na parte inferior do abdômen.</p>
-                </div>
-                <div>
-                    <h3 className="text-xl font-bold mb-2 text-green-700">3. Ajustes e Início da Medição</h3>
-                    <p>Ajuste o volume no aplicativo tocando no botão FHR. Para o TOCO, clique na seção de contração uterina para definir o valor de referência (o padrão é 15). Se o gráfico da frequência cardíaca estiver interrompido, reposicione o monitor FHR. Quando a onda estiver estável, toque no botão de medição, defina o tempo (normalmente 40 minutos) e inicie.</p>
-                </div>
-                <div>
-                    <h3 className="text-xl font-bold mb-2 text-green-700">4. Durante e Após a Medição</h3>
-                    <p>Durante a medição, o fundo da tela ficará amarelo. Ao final do tempo, um som será emitido e uma mensagem de confirmação aparecerá. Para parar no meio, use o botão 'Stop'. Após o término, remova os transdutores, limpe o gel do abdômen e dos monitores, desligue os aparelhos e coloque-os para carregar.</p>
-                </div>
+              <div>
+                  <h3 className="text-xl font-bold mb-2 text-green-700">1. Preparação e Aplicação do Gel</h3>
+                  <p>Prepare a cinta de fixação. Aplique o gel de contato apenas no monitor de frequência cardíaca (FHR - rosa). Para o monitor de contrações uterinas (TOCO - azul), não é necessário aplicar gel.</p>
+              </div>
+              <div>
+                  <h3 className="text-xl font-bold mb-2 text-green-700">2. Posicionamento e Fixação</h3>
+                  <p>Posicione o monitor FHR no abdômen, movendo-o até encontrar o ponto onde o som do batimento cardíaco fetal é mais nítido. Passe o gancho do transdutor pelo furo da cinta e puxe as duas pontas com força igual para fixar, sem apertar excessivamente. O transdutor TOCO deve ser posicionado na parte inferior do abdômen.</p>
+              </div>
+              <div>
+                  <h3 className="text-xl font-bold mb-2 text-green-700">3. Ajustes e Início da Medição</h3>
+                  <p>Ajuste o volume no aplicativo tocando no botão FHR. Para o TOCO, clique na seção de contração uterina para definir o valor de referência (o padrão é 15). Se o gráfico da frequência cardíaca estiver interrompido, reposicione o monitor FHR. Quando a onda estiver estável, toque no botão de medição, defina o tempo (normalmente 40 minutos) e inicie.</p>
+              </div>
+              <div>
+                  <h3 className="text-xl font-bold mb-2 text-green-700">4. Durante e Após a Medição</h3>
+                  <p>Durante a medição, o fundo da tela ficará amarelo. Ao final do tempo, um som será emitido e uma mensagem de confirmação aparecerá. Para parar no meio, use o botão 'Stop'. Após o término, remova os transdutores, limpe o gel do abdômen e dos monitores, desligue os aparelhos e coloque-os para carregar.</p>
+              </div>
             </div>
         ),
         imagens: [
@@ -173,17 +173,17 @@ export const modulosData = {
           <p className="mb-4">Para acessar um exame antigo, selecione o paciente, toque no ícone da lista de dados e escolha a medição desejada pela data e hora. O gráfico correspondente será exibido na tela.</p>
           <h3 className="text-xl font-semibold mb-2">Reenviando Dados para a Nuvem</h3>
           <p className="mb-4">Se houver uma falha de conexão com a internet, os dados podem não ser enviados para o servidor. Nesse caso, o registro ficará com a marca "Unsend" (Não enviado). Para reenviar, selecione o registro e utilize a opção de reenvio para garantir que o especialista remoto tenha acesso ao exame.</p>
-           <h3 className="text-xl font-semibold mb-2">Excluindo Dados</h3>
+            <h3 className="text-xl font-semibold mb-2">Excluindo Dados</h3>
           <p className="mb-4 text-red-700 font-bold">Atenção: A exclusão de dados é uma ação permanente e os registros não podem ser recuperados após a confirmação. Use esta função com cuidado. Para excluir, selecione os dados e confirme a ação na caixa de diálogo.</p>
         </div>
       ),
       imagens: [
-        { titulo: "Acessar Lista de Dados", imagem: "/ICTG_imagens/53_acessar_dados.png", descricao: "Toque no ícone da lista de dados para ver todos os exames salvos para o paciente selecionado." },
-        { titulo: "Selecionar Exame", imagem: "/ICTG_imagens/54_scroll_e_selecao.png", descricao: "Faça um scroll na lista para encontrar o exame desejado e toque para selecioná-lo." },
-        { titulo: "Visualizar Gráfico Antigo", imagem: "/ICTG_imagens/55_grafico_antigo.png", descricao: "O gráfico do exame selecionado será exibido, permitindo a análise retrospectiva." },
-        { titulo: "Falha no Envio", imagem: "/ICTG_imagens/56_reenviar_dados.png", descricao: "Se um exame não for enviado para a nuvem, ele será marcado como 'Unsend'." },
-        { titulo: "Confirmar Reenvio", imagem: "/ICTG_imagens/57_confirmar_reenvio.png", descricao: "Selecione o exame e confirme a opção de reenviar os dados para o servidor." },
-        { titulo: "Excluir Dados", imagem: "/ICTG_imagens/58_deletar_dados.png", descricao: "É possível excluir registros permanentemente do tablet, mas essa ação não pode ser desfeita." }
+        { titulo: "Acessar Lista de Dados", imagem: "/melody/Lista_de_Dados.png", descricao: "Toque no ícone da lista de dados para ver todos os exames salvos para o paciente selecionado." },
+        { titulo: "Selecionar Exame", imagem: "/melody/selecionar_exame.png", descricao: "Faça um scroll na lista para encontrar o exame desejado e toque para selecioná-lo." },
+        { titulo: "Visualizar Gráfico Antigo", imagem: "/melody/selecao_graf.png", descricao: "O gráfico do exame selecionado será exibido, permitindo a análise retrospectiva." },
+        { titulo: "Falha no Envio", imagem: "/melody/Falha_ no_ Envio.png", descricao: "Se um exame não for enviado para a nuvem, ele será marcado como 'Unsend'." },
+        { titulo: "Confirmar Reenvio", imagem: "/melody/reenvio.png", descricao: "Selecione o exame e confirme a opção de reenviar os dados para o servidor." },
+        { titulo: "Excluir Dados", imagem: "/melody/excluir_dados.png", descricao: "É possível excluir registros permanentemente do tablet, mas essa ação não pode ser desfeita." }
       ],
       quiz: [
         { pergunta: 'O que você deve fazer se um exame estiver marcado como "Unsend"?', opcoes: ['Deletar o exame e refazê-lo', 'Selecionar o exame e usar a função de reenviar', 'Reiniciar o tablet'], correta: 1, feedback: "Correto! A marca 'Unsend' indica uma falha de transmissão. A função de reenviar foi criada exatamente para resolver essa situação sem perda de dados." },
@@ -193,9 +193,9 @@ export const modulosData = {
     simulacao3D: null
   },
   '5': {
-     title: "Módulo 5: Acesso Remoto para Especialistas",
-     color: "purple",
-     teoria2D: {
+      title: "Módulo 5: Acesso Remoto para Especialistas",
+      color: "purple",
+      teoria2D: {
         teoria: () => (
           <div className="bg-white p-8 rounded-xl shadow-lg text-gray-800">
             <h2 className="text-2xl font-bold mb-4">Monitoramento Remoto com iCTG Viewer</h2>
@@ -211,20 +211,20 @@ export const modulosData = {
           </div>
         ),
         imagens: [
-            { titulo: "Visão Geral do Acesso Remoto", imagem: "/ICTG_imagens/59_visao_geral_remoto.png", descricao: "Os dados são enviados à nuvem Melody i, de onde podem ser acessados por um app dedicado ou por qualquer navegador web." },
-            { titulo: "Acesso via Navegador Web", imagem: "/ICTG_imagens/60_acesso_web.png", descricao: "Para acessar pelo navegador, basta inserir o URL fornecido, conta e senha." },
-            { titulo: "Interface do Viewer Web", imagem: "/ICTG_imagens/61_interface_web.png", descricao: "A tela principal do serviço web exibe o gráfico e permite selecionar o paciente, a data do exame e imprimir." },
-            { titulo: "Seleção de Paciente no Web", imagem: "/ICTG_imagens/62_selecao_paciente_web.png", descricao: "É possível alternar entre diferentes pacientes usando a lista suspensa de IDs." },
-            { titulo: "Seleção de Data do Exame", imagem: "/ICTG_imagens/63_selecao_data_web.png", descricao: "Para um mesmo paciente, pode-se navegar entre os diferentes registros de exames realizados." },
-            { titulo: "Configurações de Gráfico Web", imagem: "/ICTG_imagens/64_config_web.png", descricao: "As configurações permitem alterar a cor e espessura das linhas do gráfico, como FHR1, FHR2 e contração uterina." }
+            { titulo: "Visão Geral do Acesso Remoto", imagem: "/melody/Acesso_ Remoto.png", descricao: "Os dados são enviados à nuvem Melody i, de onde podem ser acessados por um app dedicado ou por qualquer navegador web." },
+            { titulo: "Acesso via Navegador Web", imagem: "/melody/acesso_web.png", descricao: "Para acessar pelo navegador, basta inserir o URL fornecido, conta e senha." },
+            { titulo: "Interface do Viewer Web", imagem: "/melody/selecao_data_do_exame.png", descricao: "A tela principal do serviço web exibe o gráfico e permite selecionar o paciente, a data do exame e imprimir." },
+            { titulo: "Seleção de Paciente no Web", imagem: "/melody/selecao_pct_web.png", descricao: "É possível alternar entre diferentes pacientes usando a lista suspensa de IDs." },
+            { titulo: "Seleção de Data do Exame", imagem: "/melody/selecao_data_do_exame.png", descricao: "Para um mesmo paciente, pode-se navegar entre os diferentes registros de exames realizados." },
+            { titulo: "Configurações de Gráfico Web", imagem: "/melody/selecao_graf.png", descricao: "As configurações permitem alterar a cor e espessura das linhas do gráfico, como FHR1, FHR2 e contração uterina." }
         ],
         quiz: [
             { pergunta: 'Qual método de acesso remoto oferece a funcionalidade mais completa, incluindo histórico de pacientes?', opcoes: ['Link de E-mail', 'Viewer App dedicado', 'Acesso pelo site da Melody'], correta: 1, feedback: "Correto! O Viewer App dedicado é a ferramenta mais completa, permitindo navegação completa entre pacientes e seus históricos, algo que o link de e-mail não faz." },
             { pergunta: 'O iCTG Viewer Web Service permite gerar PDFs em quais formatos?', opcoes: ['Apenas A4', 'Apenas Carta e Ofício', 'A4 e A3'], correta: 2, feedback: 'Exato. A interface web é otimizada para documentação, oferecendo a exportação do gráfico nos formatos A4 e A3.' },
             { pergunta: 'Para que serve a função "Auto Refresh" no Viewer Web Service?', opcoes: ['Para limpar o cache do navegador', 'Para atualizar o gráfico automaticamente a cada 10 segundos em tempo real', 'Para recarregar a lista de pacientes'], correta: 1, feedback: 'Isso mesmo! O "Auto Refresh" garante que o especialista acompanhe o exame em tempo real com atualizações constantes, sem a necessidade de recarregar a página manualmente.' },
         ]
-     },
-     simulacao3D: null
+      },
+      simulacao3D: null
   },
   'médico': {
     title: "Módulo Especial: Análise Avançada de Cardiotoco",

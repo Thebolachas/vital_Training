@@ -1,45 +1,44 @@
+// src/pages/RegistrationPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../Context/UserContext.jsx';
-import PasswordModal from '../components/PasswordModal.jsx'; // Importar o modal
+import PasswordModal from '../components/PasswordModal.jsx';
 
 export default function RegistrationPage() {
   const [name, setName] = useState('');
   const [role, setRole] = useState('Enfermagem');
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { login } = useUser();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // Adicione 'async' aqui
     e.preventDefault();
     if (name.trim() === '') {
       alert('Por favor, insira o seu nome.');
       return;
     }
 
-    // Se o perfil for 'Desenvolvedor', abre o modal em vez de logar
     if (role === 'Desenvolvedor') {
       setIsModalOpen(true);
     } else {
-      login(name, role);
-      navigate('/home');
+      await login(name, role); // Adicione 'await' aqui
+      navigate('/home'); // Mantenha a navegação para outros perfis
     }
   };
 
-  const handlePasswordConfirm = (password) => {
-    // A senha correta
-    if (password === 'OlíviaSusi') {
-      login(name, role);
-      navigate('/dashboard'); // Redireciona para o dashboard
+  const handlePasswordConfirm = async (password) => { // Adicione 'async' aqui
+    if (password === 'OlíviaSusi') { // Senha de desenvolvedor
+      await login(name, role); // Adicione 'await' aqui
+      navigate('/dashboard'); // Mantenha a navegação para o dashboard
     } else {
       alert('Senha incorreta!');
     }
-    setIsModalOpen(false); // Fecha o modal
+    setIsModalOpen(false);
   };
 
   return (
     <>
-      <PasswordModal 
+      <PasswordModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handlePasswordConfirm}
@@ -56,21 +55,18 @@ export default function RegistrationPage() {
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Função</label>
               <select
-  id="role"
-  value={role}
-  onChange={(e) => setRole(e.target.value)}
-  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
->
-
-              <option>Enfermagem</option> 
-              <option>Médico(a)</option>
-              <option>Residente</option>
-              <option>Estudante</option>
-              <option>Desenvolvedor</option>
-              <option>Outro</option> {/* ⬅️ NOVO */}
-</select>
-
-              
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option>Enfermagem</option>
+                <option>Médico(a)</option>
+                <option>Residente</option>
+                <option>Estudante</option>
+                <option>Desenvolvedor</option>
+                <option>Outro</option>
+              </select>
             </div>
             <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors transform hover:scale-105">Entrar no Treinamento</button>
           </form>

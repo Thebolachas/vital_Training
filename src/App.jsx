@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';  // <-- Corrigido, adicionado o useNavigate aqui
 import { UserProvider, useUser } from './Context/UserContext.jsx';
 import { ProgressProvider } from './Context/ProgressContext.jsx';
 
@@ -23,6 +23,7 @@ const NotFoundPage = () => (
 
 const ProtectedRoutes = () => {
   const { user, loading } = useUser();
+  const navigate = useNavigate(); // useNavigate() corretamente importado
 
   if (loading) {
     return <div className="p-8 text-center">Verificando autenticação...</div>;
@@ -36,14 +37,13 @@ const ProtectedRoutes = () => {
       <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
       <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
       <Route path="/certificate" element={<CertificatePage />} />
+      
+      {/* Rota protegida para o Dashboard */}
       <Route
         path="/dashboard"
-        element={
-          user?.role === 'Desenvolvedor'
-            ? <DashboardPage />
-            : <Navigate to="/home" replace />
-        }
+        element={user?.role === 'Desenvolvedor' ? <DashboardPage /> : <Navigate to="/home" replace />}
       />
+      
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
