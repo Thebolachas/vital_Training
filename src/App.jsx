@@ -2,7 +2,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { UserProvider, useUser } from './Context/UserContext.jsx';
-import { ProgressProvider } from './Context/ProgressContext.jsx';
+import { ProgressProvider, useProgress } from './Context/ProgressContext.jsx'; // Importar useProgress
+import { modulosData } from './Data/dadosModulos.jsx'; // Importar modulosData
 
 import IntroPage from './pages/IntroPage.jsx';
 import RegistrationPage from './pages/RegistrationPage.jsx';
@@ -24,10 +25,41 @@ const NotFoundPage = () => (
 
 const ProtectedRoutes = () => {
   const { user, loading } = useUser();
+  const { progress } = useProgress(); // Obter o progresso do usuário
 
   if (loading) {
     return <div className="p-8 text-center">Verificando autenticação...</div>;
   }
+
+  // Lógica para determinar se o usuário concluiu todos os módulos necessários para o certificado
+  const checkCompletionForCertificate = () => {
+    if (!user) return false;
+
+    const baseModules = ['1', '2', '3', '4'];
+    const advancedModules = ['5'];
+    const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
+    const isPrivileged = privilegedRoles.includes(user.role);
+
+    let requiredModulesForCertificate = [];
+
+    // Adapte esta lógica para refletir quais módulos são NECESSÁRIOS para o certificado
+    // Exemplo: Adm precisa fazer todos os módulos existentes no modulosData
+    if (user.role === 'Adm') {
+        requiredModulesForCertificate = Object.keys(modulosData);
+    } else if (isPrivileged) {
+        requiredModulesForCertificate = [...baseModules, ...advancedModules];
+    } else {
+        requiredModulesForCertificate = baseModules;
+    }
+
+    const modulesWithQuizzesForCertificate = requiredModulesForCertificate.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
+    const completedCount = modulesWithQuizzesForCertificate.filter(id => progress[id]?.completed).length;
+
+    return completedCount === modulesWithQuizzesForCertificate.length && modulesWithQuizzesForCertificate.length > 0;
+  };
+
+  const userHasCompletedAllRequiredModules = checkCompletionForCertificate();
+
 
   return (
     <Routes>
@@ -36,11 +68,18 @@ const ProtectedRoutes = () => {
       <Route path="/home" element={<HomePage />} />
       <Route path="/modulo/:id/teoria" element={<ModulePage2D />} />
       <Route path="/modulo/:id/simulacao" element={<ModulePage3D />} />
-      <Route path="/certificate" element={<CertificatePage />} />
+      {/* Rota do Certificado - Protegida pela conclusão dos módulos */}
+      <Route
+        path="/certificate"
+        element={
+          user && userHasCompletedAllRequiredModules
+            ? <CertificatePage />
+            : <Navigate to="/home" replace /> // Redireciona se não estiver logado ou não completou
+        }
+      />
       <Route
         path="/dashboard"
         element={
-          // CORREÇÃO: Mudar 'Desenvolvedor' para 'Adm' para o acesso ao Dashboard
           user?.role === 'Adm'
             ? <DashboardPage />
             : <Navigate to="/home" replace />
@@ -54,7 +93,7 @@ const ProtectedRoutes = () => {
 export default function App() {
   return (
     <UserProvider>
-      <ProgressProvider>
+      <ProgressProvider> {/* ProgressProvider envolve ProtectedRoutes */}
         <Router>
           <ProtectedRoutes />
         </Router>

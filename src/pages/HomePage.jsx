@@ -1,3 +1,4 @@
+// src/pages/HomePage.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { modulosData } from '../Data/dadosModulos.jsx';
@@ -17,26 +18,26 @@ const ProgressStatus = ({ user, progress }) => {
     );
   }
 
-  const baseModules = ['1', '2', '3', '4']; // Base módulos (todos acessíveis para a maioria dos usuários)
-  const advancedModules = ['4', '5']; // IDs dos módulos avançados
+  const baseModules = ['1', '2', '3', '4']; // Módulos base para a maioria dos usuários
+  const advancedModules = ['5']; // Módulos avançados
   const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
   const isPrivileged = privilegedRoles.includes(user.role);
 
   let requiredModules = [];
 
-  // Lógica para determinar os módulos relevantes para cada perfil
-  if (user.role === 'Adm') { // Se o usuário for 'Adm', considere todos os módulos
+  // Lógica para determinar os módulos relevantes para cada perfil na barra de progresso
+  if (user.role === 'Adm') { // 'Adm' vê todos os módulos
     requiredModules = Object.keys(modulosData);
-  } else if (isPrivileged) { // Se for um perfil privilegiado, inclui módulos base e avançados
+  } else if (isPrivileged) { // Perfis privilegiados veem base + avançados
     requiredModules = [...baseModules, ...advancedModules];
-  } else { // Para outros perfis (Enfermagem, Outro), apenas módulos base
+  } else { // Outros perfis veem apenas os base
     requiredModules = baseModules;
   }
 
-  // Filtra módulos que realmente têm quiz (se houver algum módulo sem quiz que não deve contar para o progresso)
+  // Filtra módulos que realmente têm quiz (assumindo que teoria2D ou simulacao3D indica quiz)
   const modulesWithQuizzes = requiredModules.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
 
-  // Calcula a contagem de módulos concluídos baseando-se nos módulos que o usuário DEVE fazer
+  // Calcula a contagem de módulos concluídos
   const completedCount = modulesWithQuizzes.filter(id => progress[id]?.completed).length;
 
   return (
@@ -74,7 +75,7 @@ export default function HomePage() {
   const specialModuleId = 'médico'; // ID do módulo especial que deve ser oculto para "Enfermagem" e "Outro"
 
   const modulosVisiveis = Object.keys(modulosData).filter(id => {
-    // 'Adm' agora vê todos os módulos
+    // 'Adm' vê todos os módulos
     if (user?.role === 'Adm') return true;
 
     // Lógica para módulos restritos a perfis privilegiados
@@ -87,8 +88,37 @@ export default function HomePage() {
       return id !== specialModuleId; // Exclui apenas o módulo especial, mas permite o módulo 4
     }
 
-    return true; // Módulos base são visíveis para todos
+    return true; // Módulos base são visíveis para todos por padrão
   });
+
+  // Lógica para verificar se todos os módulos requeridos para o certificado estão completos
+  const checkCompletionForCertificate = () => {
+    if (!user) return false;
+
+    const baseModulesForCert = ['1', '2', '3', '4']; // Defina aqui quais módulos são necessários para o certificado
+    const advancedModulesForCert = ['5']; // Se perfis privilegiados precisam mais módulos para o certificado
+
+    let requiredModulesForCertificate = [];
+
+    // Adapte esta lógica para refletir quais módulos são NECESSÁRIOS para CADA PERFIL para o certificado
+    if (user.role === 'Adm') {
+        requiredModulesForCertificate = Object.keys(modulosData); // Adm precisa completar todos os módulos existentes
+    } else if (privilegedRoles.includes(user.role)) {
+        requiredModulesForCertificate = [...baseModulesForCert, ...advancedModulesForCert];
+    } else { // Para Enfermagem, Outro, etc.
+        requiredModulesForCertificate = baseModulesForCert;
+    }
+
+    // Filtra para garantir que apenas módulos com quizzes sejam contados para a conclusão
+    const modulesWithQuizzesForCertificate = requiredModulesForCertificate.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
+    const completedCountForCertificate = modulesWithQuizzesForCertificate.filter(id => progress[id]?.completed).length;
+
+    // Retorna true se todos os módulos requeridos (e que têm quiz) foram concluídos
+    // E garante que há pelo menos um módulo para evitar divisão por zero se a lista estiver vazia
+    return completedCountForCertificate === modulesWithQuizzesForCertificate.length && modulesWithQuizzesForCertificate.length > 0;
+  };
+
+  const showCertificateLink = user && checkCompletionForCertificate(); // Apenas mostra o link se o usuário está logado E completou
 
   return (
     <>
@@ -101,6 +131,11 @@ export default function HomePage() {
               <button onClick={() => setFeedbackModalOpen(true)} className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors mr-4">
                 Dar Feedback
               </button>
+            )}
+            {showCertificateLink && ( // Condicional para mostrar o link do certificado
+              <Link to="/certificate" className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg mr-4">
+                Ver Certificado
+              </Link>
             )}
             {user ? (
               <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">Logout</button>

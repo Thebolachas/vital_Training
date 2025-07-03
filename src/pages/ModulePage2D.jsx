@@ -1,8 +1,11 @@
+// src/pages/ModulePage2D.jsx
 import React, { useState, useContext, createContext, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { modulosData } from '../Data/dadosModulos.jsx';
 import { useUser } from '../Context/UserContext.jsx';
 import { useProgress } from '../Context/ProgressContext.jsx';
+
+// (Funções ImagemExplicativa e Quiz são componentes auxiliares neste arquivo)
 
 function ImagemExplicativa({ imagens, onGoToQuiz, moduloId }) {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -73,25 +76,33 @@ function Quiz({ questions, moduleId }) {
     const finalScore = respondido ? (selecionado === perguntaAtual.correta ? acertos + 1 : acertos) : acertos;
     const acertouTudo = finalScore === questions.length;
 
-    if (acertouTudo) {
-      saveQuizResult(moduleId, finalScore, questions.length);
-    } else {
-      setPodeRefazer(true);
-    }
+    // CORREÇÃO AQUI: Salva o progresso SEMPRE que o quiz é finalizado
+    // O status 'completed' será true se acertou tudo, ou false se não.
+    // Isso é mais adequado para gamificação, onde uma tentativa já conta.
+    saveQuizResult(moduleId, finalScore, questions.length); // Sempre salva o resultado
 
+    if (!acertouTudo) {
+      setPodeRefazer(true); // Permite refazer se não acertou tudo
+    }
+    
     setQuizFinalizado(true);
 
-    const baseModulesRequired = ['1', '2', '3'];
-    const advancedModulesRequired = ['1', '2', '3', '4', '5'];
+    // Lógica do botão de certificado:
+    const baseModulesRequired = ['1', '2', '3', '4']; // Módulos base
+    const advancedModulesRequired = ['5']; // Módulos avançados
     const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
     const isPrivilegedUser = user && privilegedRoles.includes(user.role);
 
+    // Certificado liberado se todos os módulos relevantes ao perfil foram concluídos
     let allRequiredDone = false;
-    if (isPrivilegedUser && moduleId === '5') {
-      allRequiredDone = advancedModulesRequired.every(id => progress[id]?.completed);
-    } else if (user?.role === 'Enfermagem' && moduleId === '3') {
+    if (user?.role === 'Adm') { // Adm precisa de todos os módulos
+      allRequiredDone = Object.keys(modulosData).every(id => progress[id]?.completed);
+    } else if (isPrivilegedUser) { // Privilegiados precisam base + avançados
+      allRequiredDone = [...baseModulesRequired, ...advancedModulesRequired].every(id => progress[id]?.completed);
+    } else { // Outros precisam apenas dos base
       allRequiredDone = baseModulesRequired.every(id => progress[id]?.completed);
     }
+
 
     if (allRequiredDone) {
       setShowCertificateButton(true);
@@ -193,57 +204,80 @@ function Quiz({ questions, moduleId }) {
   );
 }
 
-function ModuleContainer({ modulo }) {
-  const [etapa, setEtapa] = useState("teoria");
-  const abas = ["teoria", "imagens", "quiz"];
-  const activeTabClasses = { blue: 'border-b-4 border-blue-500 text-blue-600', pink: 'border-b-4 border-pink-500 text-pink-600', purple: 'border-b-4 border-purple-500 text-purple-600', teal: 'border-b-4 border-teal-500 text-teal-600' };
+
+// Componente principal do MóduloPage2D
+export default function ModulePage2D() {
+  const { id } = useParams();
+  const moduloData = modulosData[id];
+  const [etapa, setEtapa] = useState("teoria"); // Estado local para a etapa atual
+
+  if (!moduloData || !moduloData.teoria2D) {
+    return (
+      <div className="text-center p-10 bg-gray-100 min-h-screen flex flex-col justify-center items-center">
+        <h2 className="text-2xl font-bold text-gray-700">Conteúdo não encontrado ou indisponível.</h2>
+        <Link to="/home" className="mt-4 text-blue-600 hover:underline">Voltar</Link>
+      </div>
+    );
+  }
+
+  // Prepara o conteúdo do módulo com base nos dados do modulosData
+  const moduloParaRenderizar = {
+    id: id,
+    title: moduloData.title,
+    color: moduloData.color,
+    teoria: () => moduloData.teoria2D.teoria(),
+    imagens: moduloData.teoria2D.imagens,
+    quiz: moduloData.teoria2D.quiz
+  };
+
+  const activeTabClasses = { 
+    blue: 'border-b-4 border-blue-500 text-blue-600', 
+    pink: 'border-b-4 border-pink-500 text-pink-600', 
+    purple: 'border-b-4 border-purple-500 text-purple-600', 
+    teal: 'border-b-4 border-teal-500 text-teal-600',
+    orange: 'border-b-4 border-orange-500 text-orange-600', // Adicionado para Módulo 4
+  };
+
   const renderEtapa = () => {
     switch (etapa) {
-      case "teoria": return modulo.teoria();
-      case "imagens": return <ImagemExplicativa imagens={modulo.imagens} onGoToQuiz={() => setEtapa('quiz')} moduloId={modulo.id} />;
-      case "quiz": return <Quiz questions={modulo.quiz} moduleId={modulo.id} />;
+      case "teoria": return moduloParaRenderizar.teoria();
+      case "imagens": return <ImagemExplicativa imagens={moduloParaRenderizar.imagens} onGoToQuiz={() => setEtapa('quiz')} moduloId={moduloParaRenderizar.id} />;
+      case "quiz": return <Quiz questions={moduloParaRenderizar.quiz} moduleId={moduloParaRenderizar.id} />;
       default: return null;
     }
   };
 
-  return (
-    <div className="bg-gray-100 p-6 rounded-lg shadow-inner">
-      <div className="mb-6 flex justify-center border-b-2 border-gray-200">
-        {abas.map(aba => {
-          if (modulo[aba] === undefined || (Array.isArray(modulo[aba]) && modulo[aba].length === 0)) return null;
-          let tabLabel = aba === 'imagens'
-            ? modulo.id === 'médico' ? 'Análise de Imagem (estudo de caso)' : 'Imagens Explicativas'
-            : aba.charAt(0).toUpperCase() + aba.slice(1);
-          return (
-            <button
-              key={aba}
-              onClick={() => setEtapa(aba)}
-              className={`py-2 px-6 text-lg font-semibold transition-colors duration-300 ${etapa === aba ? activeTabClasses[modulo.color] || 'border-b-4 border-gray-500 text-gray-600' : "text-gray-500 hover:text-gray-900"}`}
-            >
-              {tabLabel}
-            </button>
-          );
-        })}
-      </div>
-      <div>{renderEtapa()}</div>
-    </div>
-  );
-}
-
-export default function ModulePage2D() {
-  const { id } = useParams();
-  const moduloData = modulosData[id];
-  if (!moduloData || !moduloData.teoria2D) {
-    return <div className="text-center p-10"><h2>Conteúdo não encontrado ou indisponível.</h2><Link to="/">Voltar</Link></div>;
-  }
-  const moduloParaRenderizar = { id, title: moduloData.title, color: moduloData.color, ...moduloData.teoria2D };
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <header className="flex justify-between items-center mb-10 pb-4 border-b-2 border-gray-200">
         <h1 className="text-3xl font-bold text-gray-800">{moduloData.title}</h1>
         <Link to="/home" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Voltar</Link>
       </header>
-      <main><ModuleContainer modulo={moduloParaRenderizar} /></main>
+      <main>
+        <div className="bg-gray-100 p-6 rounded-lg shadow-inner">
+          <div className="mb-6 flex justify-center border-b-2 border-gray-200">
+            {["teoria", "imagens", "quiz"].map(aba => {
+              // Somente renderiza a aba se o conteúdo existir
+              if (!moduloParaRenderizar[aba] || (Array.isArray(moduloParaRenderizar[aba]) && moduloParaRenderizar[aba].length === 0)) return null;
+              
+              let tabLabel = aba === 'imagens'
+                ? (moduloParaRenderizar.id === 'médico' ? 'Análise de Imagem (estudo de caso)' : 'Imagens Explicativas')
+                : aba.charAt(0).toUpperCase() + aba.slice(1); // Capitaliza a primeira letra
+
+              return (
+                <button
+                  key={aba}
+                  onClick={() => setEtapa(aba)}
+                  className={`py-2 px-6 text-lg font-semibold transition-colors duration-300 ${etapa === aba ? activeTabClasses[moduloParaRenderizar.color] || 'border-b-4 border-gray-500 text-gray-600' : "text-gray-500 hover:text-gray-900"}`}
+                >
+                  {tabLabel}
+                </button>
+              );
+            })}
+          </div>
+          <div>{renderEtapa()}</div>
+        </div>
+      </main>
     </div>
   );
 }

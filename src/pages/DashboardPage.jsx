@@ -1,3 +1,4 @@
+// src/pages/DashboardPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../Context/UserContext.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { db } from '../firebaseConfig';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { saveAs } from 'file-saver';
+import { modulosData } from '../Data/dadosModulos.jsx'; // IMPORTAR modulosData AQUI
 
 function TestimonialCard({ feedback }) {
   const [expanded, setExpanded] = useState(false);
@@ -36,15 +38,15 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return; // Aguardar o carregamento de autenticação
+    if (authLoading) return;
     if (!user) {
-      navigate('/login'); // Redireciona para o login se não estiver autenticado
-    } else if (user.role !== 'Adm') { // CORREÇÃO: Verifica se o perfil é 'Adm'
-      navigate('/home'); // Redireciona para a página inicial se não for 'Adm'
+      navigate('/login');
+    } else if (user.role !== 'Adm') {
+      navigate('/home');
     } else {
-      fetchData(); // Chama fetchData APENAS se o usuário for 'Adm'
+      fetchData();
     }
-  }, [user, authLoading, navigate]); // Adicionado 'navigate' às dependências do useEffect
+  }, [user, authLoading, navigate]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -56,17 +58,45 @@ export default function DashboardPage() {
       const progressMap = {};
       progressSnapshot.forEach(doc => { progressMap[doc.id] = doc.data(); });
 
+      // CÁLCULO DO PROGRESSO PARA CADA USUÁRIO AQUI
+      const combinedData = usersList.map(u => {
+        const baseModules = ['1', '2', '3', '4'];
+        const advancedModules = ['5'];
+        const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
+        const isPrivileged = privilegedRoles.includes(u.role);
+
+        let userRequiredModules = [];
+        if (u.role === 'Adm') {
+            userRequiredModules = Object.keys(modulosData);
+        } else if (isPrivileged) {
+            userRequiredModules = [...baseModules, ...advancedModules];
+        } else {
+            userRequiredModules = baseModules;
+        }
+
+        const userModulesWithQuizzes = userRequiredModules.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
+        const userCompletedCount = userModulesWithQuizzes.filter(id => (progressMap[u.id] || {})[id]?.completed).length;
+        const userTotalModules = userModulesWithQuizzes.length;
+        const completionPercentage = userTotalModules > 0 ? (userCompletedCount / userTotalModules) * 100 : 0;
+
+        return {
+          ...u,
+          progress: progressMap[u.id] || {},
+          completedModules: userCompletedCount,
+          totalModules: userTotalModules,
+          completionPercentage: completionPercentage // Adiciona a porcentagem de conclusão
+        };
+      });
+      setAllUserData(combinedData);
+
       const feedbacksSnapshot = await getDocs(collection(db, 'feedbacks'));
       setFeedbacks(feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-
-      const combinedData = usersList.map(u => ({ ...u, progress: progressMap[u.id] || {} }));
-      setAllUserData(combinedData);
 
       const roleCounts = usersList.reduce((acc, u) => ({ ...acc, [u.role]: (acc[u.role] || 0) + 1 }), {});
       setRoleData(Object.keys(roleCounts).map(role => ({ name: role, value: roleCounts[role] })));
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard: ", error);
-      alert("Não foi possível carregar os dados do dashboard. Verifique o console para mais detalhes."); // Alerta mais informativo
+      alert("Não foi possível carregar os dados do dashboard. Verifique o console para mais detalhes.");
     } finally {
       setIsLoading(false);
     }
@@ -126,7 +156,7 @@ export default function DashboardPage() {
     <div className="p-4 sm:p-8 bg-gray-100 min-h-screen">
       <header className="bg-white p-4 rounded-xl shadow-md mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-800">Dashboard do Administrador</h1> {/* Título ajustado para 'Administrador' */}
+          <h1 className="text-3xl font-black text-gray-800">Dashboard do Administrador</h1>
           <p className="text-gray-500">Visão geral do progresso e feedback dos usuários.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
@@ -187,6 +217,7 @@ export default function DashboardPage() {
                     <th className="p-3 font-semibold">Nome</th>
                     <th className="p-3 font-semibold">Perfil</th>
                     <th className="p-3 font-semibold">Módulos Concluídos</th>
+                    <th className="p-3 font-semibold">Progresso (%)</th> {/* Nova coluna */}
                     <th className="p-3 font-semibold">Ações</th>
                   </tr>
                 </thead>
@@ -195,7 +226,16 @@ export default function DashboardPage() {
                     <tr key={index} className="border-b hover:bg-gray-50">
                       <td className="p-3 font-medium">{data.name}</td>
                       <td className="p-3 text-gray-600">{data.role}</td>
-                      <td className="p-3 text-gray-600">{Object.values(data.progress).filter(p => p.completed).length}</td>
+                      <td className="p-3 text-gray-600">{data.completedModules} de {data.totalModules}</td>
+                      <td className="p-3">
+                        <div className="w-24 bg-gray-200 rounded-full h-2.5"> {/* Barra de progresso */}
+                          <div
+                            className="bg-blue-600 h-2.5 rounded-full"
+                            style={{ width: `${data.completionPercentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-500 mt-1 block">{data.completionPercentage.toFixed(0)}%</span>
+                      </td>
                       <td className="p-3">
                         <button onClick={() => handleDeleteUser(data)} className="bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold py-1 px-3 rounded-full">
                           Deletar
