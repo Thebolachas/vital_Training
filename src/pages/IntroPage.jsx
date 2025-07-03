@@ -25,15 +25,9 @@ export default function IntroPage() {
 
       {/* Seção Central - O Foco */}
       <div className="flex-[2] flex flex-col items-center justify-center text-center px-4">
-        <div className="w-full h-48 flex justify-center items-center">
-          <img 
-            className="max-h-full max-w-[280px] md:max-w-xs animate-float"
-            src="/path/to/your/product-image.png" // Substitua com a imagem do produto
-            alt="Produto"
-          />
-        </div>
+        
 
-        {/* Texto inspirado na Apple */}
+        {/* Texto inspirado*/}
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mt-8">
           Menos fios. Mais vida.
         </h1>

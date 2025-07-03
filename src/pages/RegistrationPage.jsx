@@ -18,7 +18,7 @@ export default function RegistrationPage() {
       return;
     }
 
-    if (role === 'Desenvolvedor') {
+    if (role === 'Adm') {
       setIsModalOpen(true);
     } else {
       await login(name, role); // Adicione 'await' aqui
@@ -27,7 +27,7 @@ export default function RegistrationPage() {
   };
 
   const handlePasswordConfirm = async (password) => { // Adicione 'async' aqui
-    if (password === 'OlíviaSusi') { // Senha de desenvolvedor
+    if (password === '12345@') { // Senha de Adm
       await login(name, role); // Adicione 'await' aqui
       navigate('/dashboard'); // Mantenha a navegação para o dashboard
     } else {
@@ -50,7 +50,14 @@ export default function RegistrationPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-              <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Gustavo Duarte"/>
+              <input 
+                type="text" 
+                id="name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                placeholder="Digite Aqui"
+              />
             </div>
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Função</label>
@@ -60,15 +67,18 @@ export default function RegistrationPage() {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
+                <option>Adm</option> {/* Ordem alfabética: Adm vem primeiro */}
                 <option>Enfermagem</option>
                 <option>Médico(a)</option>
-                <option>Residente</option>
-                <option>Estudante</option>
-                <option>Desenvolvedor</option>
                 <option>Outro</option>
               </select>
             </div>
-            <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors transform hover:scale-105">Entrar no Treinamento</button>
+            <button 
+              type="submit" 
+              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors transform hover:scale-105"
+            >
+              Entrar no Treinamento
+            </button>
           </form>
         </div>
       </div>
