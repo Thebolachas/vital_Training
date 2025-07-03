@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
     fontFamily: 'Helvetica',
-    color: '#000000', // Preto
+    color: '#000000', // Pre
   },
   participantName: { // Nome do participante
     fontSize: 36, // Grande
