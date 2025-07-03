@@ -11,25 +11,25 @@ export default function RegistrationPage() {
   const navigate = useNavigate();
   const { login } = useUser();
 
-  const handleSubmit = async (e) => { // Adicione 'async' aqui
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (name.trim() === '') {
       alert('Por favor, insira o seu nome.');
       return;
     }
 
-    if (role === 'Adm') {
+    if (role === 'Adm') { // Verifica o perfil 'Adm' para abrir o modal
       setIsModalOpen(true);
     } else {
-      await login(name, role); // Adicione 'await' aqui
-      navigate('/home'); // Mantenha a navegação para outros perfis
+      await login(name, role);
+      navigate('/home'); // Redireciona para a Home para outros perfis
     }
   };
 
-  const handlePasswordConfirm = async (password) => { // Adicione 'async' aqui
+  const handlePasswordConfirm = async (password) => {
     if (password === '12345@') { // Senha de Adm
-      await login(name, role); // Adicione 'await' aqui
-      navigate('/dashboard'); // Mantenha a navegação para o dashboard
+      await login(name, role);
+      navigate('/dashboard'); // Redireciona para o Dashboard
     } else {
       alert('Senha incorreta!');
     }
@@ -50,12 +50,12 @@ export default function RegistrationPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-              <input 
-                type="text" 
-                id="name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Digite Aqui"
               />
             </div>
@@ -67,14 +67,15 @@ export default function RegistrationPage() {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
-                <option>Adm</option> {/* Ordem alfabética: Adm vem primeiro */}
                 <option>Enfermagem</option>
                 <option>Médico(a)</option>
+                <option>Estudante</option>
+                <option>Adm</option> {/* Opção para o perfil 'Adm' */}
                 <option>Outro</option>
               </select>
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors transform hover:scale-105"
             >
               Entrar no Treinamento
