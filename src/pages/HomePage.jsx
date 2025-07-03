@@ -17,19 +17,27 @@ const ProgressStatus = ({ user, progress }) => {
     );
   }
 
-  const baseModules = ['1', '2', '3'];
-  const advancedModules = ['4', '5'];
+  const baseModules = ['1', '2', '3', '4']; // Base módulos (todos acessíveis para a maioria dos usuários)
+  const advancedModules = ['4', '5']; // IDs dos módulos avançados
   const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
   const isPrivileged = privilegedRoles.includes(user.role);
-  const isOutro = user.role === 'Outro';
 
-  const requiredModules = isPrivileged
-    ? [...baseModules, ...advancedModules]
-    : (user.role === 'Desenvolvedor'
-        ? Object.keys(modulosData).filter(id => id !== 'médico')
-        : baseModules);
+  let requiredModules = [];
 
-  const completedCount = requiredModules.filter(id => progress[id]?.completed).length;
+  // Lógica para determinar os módulos relevantes para cada perfil
+  if (user.role === 'Adm') { // Se o usuário for 'Adm', considere todos os módulos
+    requiredModules = Object.keys(modulosData);
+  } else if (isPrivileged) { // Se for um perfil privilegiado, inclui módulos base e avançados
+    requiredModules = [...baseModules, ...advancedModules];
+  } else { // Para outros perfis (Enfermagem, Outro), apenas módulos base
+    requiredModules = baseModules;
+  }
+
+  // Filtra módulos que realmente têm quiz (se houver algum módulo sem quiz que não deve contar para o progresso)
+  const modulesWithQuizzes = requiredModules.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
+
+  // Calcula a contagem de módulos concluídos baseando-se nos módulos que o usuário DEVE fazer
+  const completedCount = modulesWithQuizzes.filter(id => progress[id]?.completed).length;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-200">
@@ -37,12 +45,12 @@ const ProgressStatus = ({ user, progress }) => {
       <div className="mb-2">
         <div className="flex justify-between font-semibold text-gray-700 mb-1">
           <span>Progresso</span>
-          <span>{completedCount} de {requiredModules.length}</span>
+          <span>{completedCount} de {modulesWithQuizzes.length} módulos concluídos</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
             className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-            style={{ width: `${(completedCount / requiredModules.length) * 100}%` }}
+            style={{ width: `${(completedCount / modulesWithQuizzes.length) * 100 || 0}%` }}
           ></div>
         </div>
       </div>
@@ -62,14 +70,24 @@ export default function HomePage() {
   };
 
   const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
-  const restrictedModuleIds = ['4', '5', 'médico'];
+  const restrictedModuleIds = ['5']; // Módulo 5 é restrito a perfis privilegiados
+  const specialModuleId = 'médico'; // ID do módulo especial que deve ser oculto para "Enfermagem" e "Outro"
 
   const modulosVisiveis = Object.keys(modulosData).filter(id => {
-    if (user?.role === 'Desenvolvedor') return true;
+    // 'Adm' agora vê todos os módulos
+    if (user?.role === 'Adm') return true;
+
+    // Lógica para módulos restritos a perfis privilegiados
     if (restrictedModuleIds.includes(id)) {
       return user && privilegedRoles.includes(user.role);
     }
-    return true;
+
+    // Exclui o "Módulo Especial: Análise Avançada de Cardiotoco" para Enfermagem e Outro
+    if (user?.role === 'Enfermagem' || user?.role === 'Outro') {
+      return id !== specialModuleId; // Exclui apenas o módulo especial, mas permite o módulo 4
+    }
+
+    return true; // Módulos base são visíveis para todos
   });
 
   return (
@@ -79,7 +97,7 @@ export default function HomePage() {
         <header className="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-30">
           <h1 className="text-xl font-bold text-gray-800">Olá, {user?.name ? user.name.split(' ')[0] : 'Visitante'}!</h1>
           <div>
-            {user && user.role !== 'Desenvolvedor' && (
+            {user && user.role !== 'Adm' && ( // Apenas não-Adms podem dar feedback aqui
               <button onClick={() => setFeedbackModalOpen(true)} className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors mr-4">
                 Dar Feedback
               </button>
@@ -105,16 +123,10 @@ export default function HomePage() {
               {modulosVisiveis.map(id => (
                 <div
                   key={id}
-                  className={`p-6 rounded-xl shadow-lg border ${
-                    modulosData[id].color === 'teal'
-                      ? 'bg-teal-50 border-teal-200'
-                      : 'bg-white border-gray-200'
-                  }`}
+                  className={`p-6 rounded-xl shadow-lg border ${modulosData[id].color === 'teal' ? 'bg-teal-50 border-teal-200' : 'bg-white border-gray-200'}`}
                 >
                   <div className="flex items-center justify-between">
-                    <h2 className={`text-2xl font-bold mb-4 ${
-                      modulosData[id].color === 'teal' ? 'text-teal-800' : 'text-gray-800'
-                    }`}>
+                    <h2 className={`text-2xl font-bold mb-4 ${modulosData[id].color === 'teal' ? 'text-teal-800' : 'text-gray-800'}`}>
                       {modulosData[id].title}
                     </h2>
                     {progress[id]?.completed && (
