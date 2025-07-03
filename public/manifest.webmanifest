@@ -1,22 +1,19 @@
 {
-  "name": "TreinaFácil iCTG",
-  "short_name": "iCTG Treino",
-  "description": "Plataforma de treinamento para o dispositivo iCTG.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "short_name": "Vital Training",
+  "name": "Vital Training iCTG",
   "icons": [
     {
-      "src": "/pwa-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/pwa-512x512.png",
+      "src": "/pwa-512x512.png",  // Aqui o caminho começa a partir de "public"
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/pwa-192x192.png",  // Opcional, para ícones menores
+      "sizes": "192x192",
+      "type": "image/png"
     }
-  ]
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
 }
