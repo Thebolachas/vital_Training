@@ -25,6 +25,13 @@ export default function IntroPage() {
 
       {/* Seção Central - O Foco */}
       <div className="flex-[2] flex flex-col items-center justify-center text-center px-4">
+        {/* NOVO: Espaço para a imagem do símbolo do projeto */}
+        <img
+          src="print/logo-vital.png" // <--- SUBSTITUA ESTE CAMINHO PELA SUA IMAGEM
+          alt="Símbolo do Projeto"
+          className="w-32 h-32 mb-8 object-contain" // Ajuste o tamanho e margens conforme necessário
+        />
+
         {/* Texto inspirado */}
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mt-8 text-white drop-shadow-lg">
           Menos fios. Mais vida.

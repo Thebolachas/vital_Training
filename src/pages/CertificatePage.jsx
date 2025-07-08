@@ -1,117 +1,118 @@
 import React from 'react';
-import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import {
+  PDFDownloadLink,
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image
+} from '@react-pdf/renderer';
 import { useUser } from '../Context/UserContext.jsx';
 import { Link } from 'react-router-dom';
+import Confetti from 'react-confetti';
 
-// Definição dos estilos para o certificado
 const styles = StyleSheet.create({
-  page: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-  },
+  page: { backgroundColor: '#FFFFFF', padding: 0 },
   container: {
-    border: '10px solid #4A90E2', // Borda azul
     width: '100%',
     height: '100%',
     position: 'relative',
-    // Adicionado padding interno para que o conteúdo não fique muito perto da borda
     padding: 40,
+    backgroundColor: '#FFFFFF'
   },
   body: {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center', // Centraliza o conteúdo verticalmente
-    alignItems: 'center',     // Centraliza o conteúdo horizontalmente
+    justifyContent: 'center',
+    alignItems: 'center',
     textAlign: 'center',
+    paddingHorizontal: 60
   },
   logoTopLeft: {
     position: 'absolute',
-    top: 25,
-    left: 25,
-    width: 80,
-    height: 80,
+    top: 30,
+    left: 30,
+    width: '10%',  // Ajuste para garantir a responsividade
+    height: 'auto',
+    objectFit: 'contain'
   },
-  logoBottomLeft: {
+  logoTopRight: {
     position: 'absolute',
-    bottom: 25,
-    left: 25,
-    width: 70,
-    height: 70,
+    top: 40,
+    right: 40,
+    width: '8%',  // Ajuste para garantir a responsividade
+    height: 'auto',
+    objectFit: 'contain'
   },
-  logoBottomRight: {
+  decorativeBottomRight: {
     position: 'absolute',
-    bottom: 25,
-    right: 25,
-    width: 70,
-    height: 70,
+    bottom: 0,
+    right: 0,
+    width: '15%',  // Ajuste para garantir a responsividade
+    height: 'auto',
+    objectFit: 'contain',
+    opacity: 0.8
   },
-  // Novos estilos para o texto do certificado
-  certificateTitle: { // "CERTIFICADO"
-    fontSize: 48, // Tamanho grande
+  certificateTitle: {
+    fontSize: 48,
     marginBottom: 5,
     fontFamily: 'Helvetica-Bold',
-    color: '#41cc96', // Verde
+    color: '#41cc96'
   },
-  certificateSubtitle: { // "DE PARTICIPAÇÃO"
-    fontSize: 24, // Menor que o título
-    marginBottom: 30, // Espaço abaixo
+  certificateSubtitle: {
+    fontSize: 24,
+    marginBottom: 30,
     fontFamily: 'Helvetica-Bold',
-    color: '#41cc96', // Verde
+    color: '#41cc96'
   },
-  participationText: { // "O InovaHC atesta a participação de"
+  participationText: {
     fontSize: 16,
     marginBottom: 5,
     fontFamily: 'Helvetica',
-    color: '#000000', // Preto 
+    color: '#000000'
   },
-  participantName: { // Nome do participante
-    fontSize: 36, // Grande
+  participantName: {
+    fontSize: 30,
     marginVertical: 15,
-    fontFamily: 'Helvetica-BoldOblique', // Estilo bold e itálico para o nome
-    color: '#41cc96', // Verde
+    fontFamily: 'Helvetica-Bold',
+    color: '#00B388'
   },
-  trainingDescription: { // Descrição do treinamento
+  trainingDescription: {
     fontSize: 14,
-    lineHeight: 1.5, // Espaçamento entre linhas
+    lineHeight: 1.6,
     fontFamily: 'Helvetica',
-    color: '#000000', // Preto
-    maxWidth: '80%', // Limita a largura para melhor leitura
-  },
-  // O estilo 'date' original não será mais usado como posição absoluta no rodapé,
-  // mas podemos mantê-lo ou adaptá-lo se a data for integrada em outro lugar.
-  // Por enquanto, a data será gerada dinamicamente dentro do trainingDescription.
+    color: '#000000',
+    width: '80%', // Ajuste para responsividade
+    margin: '0 auto' // Centraliza o texto
+  }
 });
 
-// O componente CertificatePDF agora recebe apenas o userName
 const CertificatePDF = ({ userName }) => {
-  // Obtenha a data atual formatada para o certificado
   const currentDate = new Date().toLocaleDateString('pt-BR');
-  const currentYear = new Date().getFullYear();
 
   return (
     <Document>
       <Page style={styles.page} size="A4" orientation="landscape">
         <View style={styles.container}>
-          {/* Imagens de logo (ajuste os caminhos se necessário) */}
-          <Image style={styles.logoTopLeft} src="/logo-certificado.png" />
-          <Image style={styles.logoBottomLeft} src="/logo-parceiro1.png" />
-          <Image style={styles.logoBottomRight} src="/logo-parceiro2.png" />
+          <Image style={styles.logoTopLeft} src="print/logo-vital.png" />
+          <Image style={styles.logoTopRight} src="print/Captura de tela 2025-07-07 204935.png" />
+          <Image style={styles.decorativeBottomRight} src="logo-certificado.png" />
 
           <View style={styles.body}>
-            {/* Título e subtítulo do certificado */}
             <Text style={styles.certificateTitle}>CERTIFICADO</Text>
             <Text style={styles.certificateSubtitle}>DE PARTICIPAÇÃO</Text>
-
-            {/* Texto de atestado */}
             <Text style={styles.participationText}>O InovaHC atesta a participação de</Text>
-
-            {/* Nome do participante */}
             <Text style={styles.participantName}>{userName}</Text>
-
-            {/* Descrição do treinamento com data dinâmica */}
             <Text style={styles.trainingDescription}>
-              no treinamento do Projeto Implementação da Cardiotocografia Móvel no SUS - melhoria da assistência ao feto e redução da mortalidade neonatal, utilizando dispositivos vestíveis de cardiotocografia no período de {currentDate}  totalizando 1 hora de dedicação.
+              <Text>no treinamento do </Text>
+              <Text style={{ fontWeight: 'bold' }}>
+                Projeto Implementação da Cardiotocografia Móvel no SUS
+              </Text>
+              <Text>
+                , melhoria da assistência ao feto e redução da mortalidade neonatal, utilizando dispositivos vestíveis de cardiotocografia no período de {currentDate}, totalizando 1 hora de dedicação.
+              </Text>
             </Text>
           </View>
         </View>
@@ -120,11 +121,11 @@ const CertificatePDF = ({ userName }) => {
   );
 };
 
-// O componente CertificatePage continua o mesmo, apenas importando e usando CertificatePDF
 export default function CertificatePage() {
   const { user } = useUser();
+  const [showConfetti, setShowConfetti] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState(null);
 
-  // Se o usuário não estiver logado, redireciona ou exibe mensagem
   if (!user) {
     return (
       <div className="text-center p-10">
@@ -136,19 +137,43 @@ export default function CertificatePage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-8">
+      {showConfetti && <Confetti />}
       <div className="bg-white p-10 rounded-xl shadow-2xl max-w-2xl text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Parabéns, {user.name}!</h1>
-        <p className="text-lg text-gray-600 mb-8">Você concluiu o treinamento. Clique no botão abaixo para baixar seu certificado em formato PDF.</p>
+        <p className="text-lg text-gray-600 mb-8">
+          Você concluiu o treinamento. Clique no botão abaixo para baixar seu certificado em formato PDF.
+        </p>
 
-        {/* PDFDownloadLink usa o componente CertificatePDF com o nome do usuário */}
         <PDFDownloadLink
           document={<CertificatePDF userName={user.name} />}
           fileName={`Certificado_${user.name.replace(/\s/g, '_')}.pdf`}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors inline-block"
         >
-          {({ loading }) => loading ? 'Gerando certificado...' : 'Baixar Certificado'}
+          {({ loading, error, blob, url }) => {
+            if (error) setErrorMessage('Erro ao gerar o certificado. Tente novamente.');
+
+            return (
+              <>
+                <button
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors inline-block"
+                  disabled={loading}
+                  onClick={() => { 
+                    if (!loading && !error) setShowConfetti(true); // Confete somente após o PDF estar pronto
+                  }}
+                  aria-label={`Baixar certificado de ${user.name}`} 
+                >
+                  {loading ? 'Gerando certificado...' : 'Baixar Certificado'}
+                </button>
+                {error && (
+                  <p className="text-red-500 mt-4">{errorMessage}</p>
+                )}
+              </>
+            );
+          }}
         </PDFDownloadLink>
-        <Link to="/home" className="block mt-8 text-blue-600 hover:underline">Voltar à seleção de módulos</Link>
+
+        <Link to="/home" className="block mt-8 text-blue-600 hover:underline">
+          Voltar à seleção de módulos
+        </Link>
       </div>
     </div>
   );

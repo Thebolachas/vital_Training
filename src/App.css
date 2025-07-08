@@ -10,9 +10,9 @@ body {
 /* Garante que o container principal ocupe toda a altura */
 #root {
   min-height: 100vh;
+}
 
-
-  .simulacao-container {
+.simulacao-container {
   max-height: 100vh;
   overflow-y: auto;
   padding-bottom: 6rem; /* Espaço para o botão fixo */
@@ -32,6 +32,4 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   border: none;
-}
-
 }

@@ -1,9 +1,9 @@
 // src/pages/ModulePage2D.jsx
 import React, { useState, useContext, createContext, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { modulosData } from '../Data/dadosModulos.jsx';
+import { modulosData } from '../Data/dadosModulos.jsx'; // Certifique-se que modulosData está importado
 import { useUser } from '../Context/UserContext.jsx';
-import { useProgress } from '../Context/ProgressContext.jsx';
+import { useProgress } from '../Context/ProgressContext.jsx'; // Correção na importação
 
 // (Funções ImagemExplicativa e Quiz são componentes auxiliares neste arquivo)
 
@@ -48,7 +48,7 @@ function ImagemExplicativa({ imagens, onGoToQuiz, moduloId }) {
   );
 }
 
-function Quiz({ questions, moduleId }) {
+function Quiz({ questions, moduloId }) { // Nome do parâmetro corrigido de 'moduleId' para 'moduloId'
   const navigate = useNavigate();
   const { user } = useUser();
   const { progress, saveQuizResult } = useProgress();
@@ -60,6 +60,16 @@ function Quiz({ questions, moduleId }) {
   const [quizFinalizado, setQuizFinalizado] = useState(false);
   const [showCertificateButton, setShowCertificateButton] = useState(false);
   const [podeRefazer, setPodeRefazer] = useState(false);
+
+  // Lógica para encontrar o próximo módulo
+  const allModuleIds = Object.keys(modulosData).sort((a, b) => parseInt(a) - parseInt(b));
+  const currentModuleIndex = allModuleIds.indexOf(moduloId); // Usar moduloId
+  const nextModuleId = currentModuleIndex !== -1 && currentModuleIndex < allModuleIds.length - 1
+                       ? allModuleIds[currentModuleIndex + 1]
+                       : null;
+  const nextModuleTitle = nextModuleId ? modulosData[nextModuleId]?.title : null;
+  const nextModulePath = nextModuleId ? `/modulo/${nextModuleId}/teoria` : '/home';
+
 
   const perguntaAtual = questions[indice];
 
@@ -76,37 +86,44 @@ function Quiz({ questions, moduleId }) {
     const finalScore = respondido ? (selecionado === perguntaAtual.correta ? acertos + 1 : acertos) : acertos;
     const acertouTudo = finalScore === questions.length;
 
-    // CORREÇÃO AQUI: Salva o progresso SEMPRE que o quiz é finalizado
-    // O status 'completed' será true se acertou tudo, ou false se não.
-    // Isso é mais adequado para gamificação, onde uma tentativa já conta.
-    saveQuizResult(moduleId, finalScore, questions.length); // Sempre salva o resultado
-
-    if (!acertouTudo) {
-      setPodeRefazer(true); // Permite refazer se não acertou tudo
+    // LÓGICA ESPECIAL PARA ADMINISTRADOR: NÃO COMPUTA PROGRESSO, SEMPRE PODE REFAZER
+    if (user?.role === 'Adm') {
+      setPodeRefazer(true);
+      setQuizFinalizado(true);
+      setShowCertificateButton(true); // Adm sempre pode ver o certificado (se quiser testar o fluxo)
+      // Navega para a home com estado, mesmo sendo Adm
+      navigate('/home', { state: { completedModuleId: moduloId, allCorrect: acertouTudo } }); // Usar moduloId
+      return;
     }
     
+    // Lógica normal para outros usuários: Salva o progresso
+    saveQuizResult(moduloId, finalScore, questions.length); // Usar moduloId
+
+    if (!acertouTudo) {
+      setPodeRefazer(true);
+    }
     setQuizFinalizado(true);
 
-    // Lógica do botão de certificado:
-    const baseModulesRequired = ['1', '2', '3', '4']; // Módulos base
-    const advancedModulesRequired = ['5']; // Módulos avançados
+    // Lógica do botão de certificado para usuários não-Adm:
+    const baseModulesRequired = ['1', '2', '3', '4'];
+    const advancedModulesRequired = ['5'];
     const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
     const isPrivilegedUser = user && privilegedRoles.includes(user.role);
 
-    // Certificado liberado se todos os módulos relevantes ao perfil foram concluídos
     let allRequiredDone = false;
-    if (user?.role === 'Adm') { // Adm precisa de todos os módulos
+    if (user?.role === 'Adm') {
       allRequiredDone = Object.keys(modulosData).every(id => progress[id]?.completed);
-    } else if (isPrivilegedUser) { // Privilegiados precisam base + avançados
+    } else if (isPrivilegedUser) {
       allRequiredDone = [...baseModulesRequired, ...advancedModulesRequired].every(id => progress[id]?.completed);
-    } else { // Outros precisam apenas dos base
+    } else {
       allRequiredDone = baseModulesRequired.every(id => progress[id]?.completed);
     }
-
 
     if (allRequiredDone) {
       setShowCertificateButton(true);
     }
+    // NOVO: Navega para a home com estado para usuários não-Adm também
+    navigate('/home', { state: { completedModuleId: moduloId, allCorrect: acertouTudo } }); // Usar moduloId
   };
 
   const proxima = () => {
@@ -115,24 +132,37 @@ function Quiz({ questions, moduleId }) {
       setRespondido(false);
       setSelecionado(null);
     } else {
-      handleFinishQuiz();
+      handleFinishQuiz(); // Chama handleFinishQuiz que agora faz a navegação
     }
   };
 
   const refazerQuiz = () => {
+    // Resetando todos os estados
     setIndice(0);
     setAcertos(0);
     setRespondido(false);
     setSelecionado(null);
     setQuizFinalizado(false);
-    setPodeRefazer(false);
+    setPodeRefazer(false); // Desabilitando o botão de refazer até o quiz ser finalizado
   };
 
   if (quizFinalizado) {
+    const userName = user?.name ? user.name.split(' ')[0] : 'colega';
+    const finalMessage = acertouTudo
+      ? `Incrível, ${userName}! Você dominou este módulo!`
+      : `Mais uma etapa vencida, ${userName}, continue assim!`;
+
     return (
       <div className="max-w-xl mx-auto p-8 bg-white rounded-xl shadow-lg text-center animate-fade-in-up">
-        <h2 className="text-2xl font-bold mb-4 text-blue-600">Módulo Concluído!</h2>
+        {/* Aplica a nova classe de animação ao texto da mensagem final */}
+        <h2 className="text-3xl font-bold mb-4 text-blue-600 animate-bounce-in-text">{finalMessage}</h2>
         <p className="text-lg mb-6">Você acertou {acertos} de {questions.length} perguntas.</p>
+
+        {user?.role === 'Adm' && (
+          <p className="text-sm text-yellow-800 bg-yellow-100 p-2 rounded mb-4">
+            Este resultado não foi computado em seu progresso geral (Modo Administrador).
+          </p>
+        )}
 
         {podeRefazer && (
           <button
@@ -151,19 +181,21 @@ function Quiz({ questions, moduleId }) {
             Gerar Certificado de Conclusão
           </Link>
         )}
-
-        <button
-          onClick={() => navigate('/home')}
-          className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Voltar à Seleção de Módulos
-        </button>
+        
+        {/* Este botão de navegação foi removido daqui e a navegação agora acontece no handleFinishQuiz */}
+        {/* Se quiser manter um botão para "voltar para seleção de módulos" para casos onde não há próximo módulo ou não houve acerto total, você pode adicionar aqui novamente */}
+        {/* O handleFinishQuiz já navega, então o user já estará na HomePage */}
       </div>
     );
   }
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+      {user?.role === 'Adm' && (
+        <p className="text-sm text-yellow-800 bg-yellow-100 p-2 rounded mb-4">
+          MODO ADMINISTRADOR: Testando Quiz. Este resultado não será salvo.
+        </p>
+      )}
       <p className="text-sm text-gray-500 mb-2">Pergunta {indice + 1} de {questions.length}</p>
       <h2 className="text-xl font-bold mb-4">{perguntaAtual.pergunta}</h2>
       <div className="space-y-3">
@@ -204,7 +236,6 @@ function Quiz({ questions, moduleId }) {
   );
 }
 
-
 // Componente principal do MóduloPage2D
 export default function ModulePage2D() {
   const { id } = useParams();
@@ -242,7 +273,7 @@ export default function ModulePage2D() {
     switch (etapa) {
       case "teoria": return moduloParaRenderizar.teoria();
       case "imagens": return <ImagemExplicativa imagens={moduloParaRenderizar.imagens} onGoToQuiz={() => setEtapa('quiz')} moduloId={moduloParaRenderizar.id} />;
-      case "quiz": return <Quiz questions={moduloParaRenderizar.quiz} moduleId={moduloParaRenderizar.id} />;
+      case "quiz": return <Quiz questions={moduloParaRenderizar.quiz} moduloId={moduloParaRenderizar.id} />; // Passar moduloId aqui
       default: return null;
     }
   };

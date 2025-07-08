@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  -webkit-text-size-adjust: 100%; /* prefixo deve vir primeiro */
+  -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
@@ -44,5 +44,47 @@ html {
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+  }
+
+  /* NOVAS ANIMAÇÕES */
+  @keyframes bounce-in-text {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.8);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-5px) scale(1.05); /* Pequeno salto para cima */
+    }
+    70% {
+      transform: translateY(2px) scale(0.98); /* Pequeno recuo */
+    }
+    100% {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-bounce-in-text {
+    animation: bounce-in-text 0.8s ease-out forwards;
+  }
+
+  @keyframes pop-in {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.5s ease-out forwards;
+  }
+
+  /* NOVA ANIMAÇÃO: PISCAR */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .animate-blink {
+    animation: blink 1.5s infinite; /* Ajuste a velocidade do piscar */
   }
 }
