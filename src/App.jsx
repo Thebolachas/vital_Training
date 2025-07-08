@@ -15,8 +15,8 @@ import DashboardPage from './pages/DashboardPage.jsx';
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-    <h2 className="text-4xl font-bold text-gray-700 mb-4">404 - Página Não Encontrada</h2>
-    <p className="text-gray-500 mb-8">O caminho que você tentou acessar não existe.</p>
+    <h2 className="text-2xl sm:text-4xl font-bold text-gray-700 mb-4">404 - Página Não Encontrada</h2>
+    <p className="text-sm sm:text-lg text-gray-500 mb-8">O caminho que você tentou acessar não existe.</p>
     <Link
       to="/home"
       className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors"
