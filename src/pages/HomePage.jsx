@@ -1,5 +1,3 @@
-// src/pages/HomePage.jsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { modulosData } from '../Data/dadosModulos.jsx';
@@ -89,33 +87,55 @@ export default function HomePage() {
     const [error, setError] = useState('');
     const [isEditingPassword, setIsEditingPassword] = useState(false);
 
-    // Lógica de filtragem para os módulos visíveis por função
     const modulosVisiveis = Object.keys(modulosData).filter(id => {
         if (user?.role === 'Adm') return true; // Admin vê todos os módulos
-
-        if (user?.role === 'Enfermagem') {
-            return id !== '5' && id !== 'médico'; // Limita aos módulos 1 a 4
-        }
-
+        if (user?.role === 'Enfermagem') return id !== '5' && id !== 'médico'; // Limita aos módulos 1 a 4
         return true; // Caso contrário, mostra os módulos disponíveis para o usuário
     });
 
     useEffect(() => {
         if (location.state && location.state.completedModuleId) {
-            // Mantém esta navegação para limpar o estado da URL se necessário
-            navigate(location.pathname, { replace: true, state: {} }); 
-            // Você pode adicionar uma animação ou efeito aqui para o módulo concluído, se desejar.
-            // Por exemplo, setAnimatedModuleId(location.state.completedModuleId);
-            // E o setTimeout para resetá-lo, como estava antes.
+            navigate(location.pathname, { replace: true, state: {} });
         }
 
-        // Lógica para mostrar o prompt de feedback após a conclusão do curso
-        // Esta é uma lógica do FeedbackModal, não do certificado
-        if (checkCompletionForCertificate && user && !user.feedbackPromptDismissed) {
-             setShowFeedbackPrompt(true);
+        if (user && checkCompletionForCertificate) {
+            setShowFeedbackPrompt(true);
+        }
+    }, [location, navigate, user]);
+
+    // Defina a função dentro de useMemo ou useEffect para evitar chamadas antes da inicialização
+    const checkCompletionForCertificate = useMemo(() => {
+        if (!user) return false;
+
+        const baseModules = ['1', '2', '3', '4'];
+        const advancedModules = ['5'];
+        const medicalModules = ['médico'];
+        const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
+        const isPrivilegedUser = privilegedRoles.includes(user.role);
+
+        let modulesToConsiderForCertificate = [];
+
+        if (user.role === 'Adm') {
+            return false;
+        } else if (isPrivilegedUser) {
+            modulesToConsiderForCertificate = [...baseModules, ...advancedModules];
+            if (user.role === 'Médico(a)') {
+                modulesToConsiderForCertificate = [...modulesToConsiderForCertificate, ...medicalModules];
+            }
+        } else {
+            modulesToConsiderForCertificate = baseModules;
         }
 
-    }, [location, navigate, checkCompletionForCertificate, user]); // Adicionado `user` e `checkCompletionForCertificate` como dependências
+        const modulesWithQuizzesOrSimulations = modulesToConsiderForCertificate.filter(id => 
+            modulosData[id]?.teoria2D?.quiz || modulosData[id]?.simulacao3D
+        );
+
+        const allCompleted = modulesWithQuizzesOrSimulations.every(id => progress[id]?.completed);
+
+        return allCompleted && modulesWithQuizzesOrSimulations.length > 0;
+    }, [user, progress]);
+
+    const showCertificateLink = user && checkCompletionForCertificate;
 
     const handleFeedbackSubmittedAndClearPrompt = async () => {
         setFeedbackModalOpen(false);
@@ -137,65 +157,6 @@ export default function HomePage() {
         logout();
         navigate('/login');
     };
-
-    const handlePasswordChange = async () => {
-        if (newPassword.length < 6) {
-            setError('A nova senha deve ter pelo menos 6 caracteres.');
-            return;
-        }
-
-        try {
-            setError('');
-            alert('Senha alterada com sucesso!');
-            setIsEditingPassword(false);
-        } catch (e) {
-            setError('Erro ao alterar a senha. Tente novamente.');
-        }
-    };
-
-    // Usar useMemo para otimizar o cálculo do certificado
-    const checkCompletionForCertificate = useMemo(() => {
-        if (!user) return false;
-        
-        // Define quais módulos são necessários para o certificado com base no papel do usuário
-        const baseModules = ['1', '2', '3', '4'];
-        const advancedModules = ['5']; // Módulo 5 (avançado)
-        const medicalModules = ['médico']; // Módulo especial para médicos
-        const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
-        const isPrivilegedUser = privilegedRoles.includes(user.role);
-
-        let modulesToConsiderForCertificate = [];
-
-        // ADM não gera certificado de usuário, então retorna falso
-        if (user.role === 'Adm') {
-            return false;
-        } 
-        // Usuários privilegiados precisam dos módulos base e avançados
-        else if (isPrivilegedUser) {
-            modulesToConsiderForCertificate = [...baseModules, ...advancedModules];
-            // Se o usuário for Médico(a), também deve completar o módulo 'médico'
-            if (user.role === 'Médico(a)') {
-                modulesToConsiderForCertificate = [...modulesToConsiderForCertificate, ...medicalModules];
-            }
-        } 
-        // Outros usuários (como Enfermagem) precisam apenas dos módulos base
-        else {
-            modulesToConsiderForCertificate = baseModules;
-        }
-
-        // Filtra para incluir apenas módulos que realmente têm quizzes ou simulações (considerados "concluíveis")
-        const modulesWithQuizzesOrSimulations = modulesToConsiderForCertificate.filter(id => 
-            modulosData[id]?.teoria2D?.quiz || modulosData[id]?.simulacao3D
-        );
-        
-        // Verifica se todos os módulos relevantes para o certificado estão completos
-        const allCompleted = modulesWithQuizzesOrSimulations.every(id => progress[id]?.completed);
-
-        // Retorna true apenas se houver módulos para completar e todos foram completados
-        return allCompleted && modulesWithQuizzesOrSimulations.length > 0;
-    }, [user, progress]); // Recalcula quando user ou progress mudam
-
-    const showCertificateLink = user && checkCompletionForCertificate;
 
     return (
         <>
