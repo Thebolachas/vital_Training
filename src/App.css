@@ -1,6 +1,4 @@
-/* src/App.css */
-
-/* Estilos globais mínimos para o corpo da página. */
+/* Estilos globais mínimos para o corpo da página */
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -12,12 +10,14 @@ body {
   min-height: 100vh;
 }
 
+/* Estilos para o container de simulação */
 .simulacao-container {
   max-height: 100vh;
   overflow-y: auto;
   padding-bottom: 6rem; /* Espaço para o botão fixo */
 }
 
+/* Estilos para o botão fixo na tela */
 .botao-continuar {
   position: fixed;
   bottom: 1rem;
@@ -32,4 +32,89 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   border: none;
+}
+
+/* Animações */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Animação para flutuar */
+@layer utilities {
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Animação de Fade-in */
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+  }
+
+  /* Animações adicionais */
+  @keyframes bounce-in-text {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.8);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-5px) scale(1.05); /* Pequeno salto para cima */
+    }
+    70% {
+      transform: translateY(2px) scale(0.98); /* Pequeno recuo */
+    }
+    100% {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-bounce-in-text {
+    animation: bounce-in-text 0.8s ease-out forwards;
+  }
+
+  @keyframes pop-in {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.5s ease-out forwards;
+  }
+
+  /* Animação para piscar */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .animate-blink {
+    animation: blink 1.5s infinite; /* Ajuste a velocidade do piscar */
+  }
 }
