@@ -7,8 +7,9 @@ import { db } from '../firebaseConfig';
 import { collection, getDocs, deleteDoc, doc, query, orderBy, where, Timestamp, limit, updateDoc, serverTimestamp } from 'firebase/firestore'; 
 import { saveAs } from 'file-saver';
 import { modulosData } from '../Data/dadosModulos.jsx';
-import NotificationModal from '../components/NotificationModal.jsx';
+import NotificationModal from '../components/NotificationModal.jsx'; // Usar o NotificationModal atualizado
 import { Bell } from 'lucide-react';
+import { ROLES, isAdmin as checkIsAdmin } from '../utils/userRoles'; // Importar ROLES e isAdmin
 
 function TestimonialCard({ feedback }) {
     const [expanded, setExpanded] = useState(false);
@@ -38,12 +39,13 @@ const calculateUserCertificateStatus = (user, userProgress, allModulosData) => {
 
     const baseModules = ['1', '2', '3', '4'];
     const advancedModules = ['5'];
-    const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
+    const privilegedRoles = [ROLES.MEDICO, ROLES.RESIDENTE, ROLES.ESTUDANTE]; // Usar ROLES
     const isPrivileged = privilegedRoles.includes(user.role);
 
     let requiredModulesForCertificate = [];
 
-    if (user.role === 'Adm') {
+    // Adaptação para usar ROLES.ADM e a função isAdmin
+    if (checkIsAdmin(user.role)) { // Usar a função isAdmin do utils
         requiredModulesForCertificate = Object.keys(allModulosData);
     } else if (isPrivileged) {
         requiredModulesForCertificate = [...baseModules, ...advancedModules];
@@ -79,16 +81,18 @@ export default function DashboardPage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!user) {
-            navigate('/login');
-        } else if (user.role !== 'Adm') {
-            navigate('/home');
-        } else {
+
+        // O redirecionamento para login ou home é feito pelo ProtectedRoute no App.jsx
+        // Aqui, apenas carregamos os dados se o usuário for um administrador
+        if (user && checkIsAdmin(user.role)) { // Usar a função isAdmin do utils
             fetchData();
             fetchAdminLogs();
             fetchNotifications(); // Buscar notificações ao carregar
+        } else {
+            // Se não for admin, parar loading e talvez definir erro, embora ProtectedRoute já lide com isso
+            setIsLoading(false);
         }
-    }, [user, authLoading, navigate]);
+    }, [user, authLoading]); // Adicionado user e authLoading às dependências
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -104,11 +108,11 @@ export default function DashboardPage() {
                 const userProgress = progressMap[u.id] || {};
                 const baseModules = ['1', '2', '3', '4'];
                 const advancedModules = ['5'];
-                const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
+                const privilegedRoles = [ROLES.MEDICO, ROLES.RESIDENTE, ROLES.ESTUDANTE]; // Usar ROLES
                 const isPrivileged = privilegedRoles.includes(u.role);
 
                 let userRequiredModules = [];
-                if (u.role === 'Adm') {
+                if (checkIsAdmin(u.role)) { // Usar isAdmin
                     userRequiredModules = Object.keys(modulosData);
                 } else if (isPrivileged) {
                     userRequiredModules = [...baseModules, ...advancedModules];
@@ -130,7 +134,8 @@ export default function DashboardPage() {
                     totalModules: userTotalModules,
                     completionPercentage: completionPercentage,
                     hasCertificate: hasCertificate,
-                    registrationDate: u.createdAt ? u.createdAt.toDate() : null
+                    registrationDate: u.createdAt ? u.createdAt.toDate() : null,
+                    lastLogin: u.lastLogin ? u.lastLogin.toDate() : null // Adicionado lastLogin para uso posterior
                 };
             });
             setAllUserData(combinedData);
@@ -138,11 +143,12 @@ export default function DashboardPage() {
             const feedbacksSnapshot = await getDocs(collection(db, 'feedbacks'));
             setFeedbacks(feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
+            // Gerar dados para o gráfico de roles
             const roleCounts = usersList.reduce((acc, u) => ({ ...acc, [u.role]: (acc[u.role] || 0) + 1 }), {});
             setRoleData(Object.keys(roleCounts).map(role => ({ name: role, value: roleCounts[role] })));
         } catch (error) {
             console.error("Erro ao carregar dados do dashboard: ", error);
-            alert("Não foi possível carregar os dados do dashboard. Verifique o console para mais detalhes.");
+            // alert("Não foi possível carregar os dados do dashboard. Verifique o console para mais detalhes."); // Removido alert
         } finally {
             setIsLoading(false);
         }
@@ -150,7 +156,11 @@ export default function DashboardPage() {
 
     const fetchAdminLogs = async () => {
         try {
-            const q = query(collection(db, 'admin_logins'), orderBy('timestamp', 'desc'));
+            // Alterado para buscar logs de admin de usuários com a role 'Adm'
+            // O log de login agora está no documento do usuário em 'lastLogin'
+            // Você pode criar uma coleção 'admin_logins' separada se precisar de logs mais detalhados
+            // Para o gráfico de atividade de login, usaremos 'lastLogin' de todos os usuários
+            const q = query(collection(db, 'admin_logins'), orderBy('timestamp', 'desc'), limit(10)); // Exemplo se você tiver a coleção
             const querySnapshot = await getDocs(q);
             const logs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setAdminLoginLogs(logs);
@@ -161,6 +171,8 @@ export default function DashboardPage() {
 
     // Função para buscar notificações (novos usuários e feedbacks)
     const fetchNotifications = async () => {
+        if (!user || !checkIsAdmin(user.role)) return; // Apenas admin pode buscar notificações
+
         // Obter o timestamp da última vez que o Adm viu as notificações
         // Se user.lastNotificationsViewed não existir, usar uma data bem antiga (início do UNIX epoch)
         const lastViewedTimestamp = user?.lastNotificationsViewed || Timestamp.fromDate(new Date(0));
@@ -176,6 +188,7 @@ export default function DashboardPage() {
         const newFeedbacks = feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         // Registros de Login de Adm recentes (apenas aqueles criados APÓS a última visualização)
+        // Se você não tem uma coleção 'admin_logins' dedicada, esta parte não terá dados
         const adminLogsQuery = query(collection(db, 'admin_logins'), where('timestamp', '>', lastViewedTimestamp), orderBy('timestamp', 'desc'), limit(5));
         const adminLogsSnapshot = await getDocs(adminLogsQuery);
         const recentAdminLogins = adminLogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -194,9 +207,10 @@ export default function DashboardPage() {
                 });
                 // Atualiza o estado local do usuário para que o sininho suma imediatamente
                 // (O user no contexto é imutável, então criamos um novo objeto para forçar o re-render se necessário)
-                user.lastNotificationsViewed = Timestamp.now(); // Isso atualiza a referência dentro do objeto user do contexto
+                // user.lastNotificationsViewed = Timestamp.now(); // Isso atualiza a referência dentro do objeto user do contexto
+                // Uma melhor prática seria recarregar o user no contexto ou ter um estado para o badge.
+                // Por agora, apenas limpa o contador no UI
                 setNewNotificationsCount(0); // Limpa o contador no UI imediatamente
-                // Não é necessário chamar fetchNotifications() imediatamente aqui, pois o modal será fechado e reaberto vazio
                 console.log("Notificações marcadas como vistas.");
             } catch (error) {
                 console.error("Erro ao marcar notificações como vistas:", error);
@@ -205,10 +219,18 @@ export default function DashboardPage() {
     };
 
     const handleDeleteUser = async (userToDelete) => {
+        if (!checkIsAdmin(user?.role)) { // Dupla verificação de segurança
+            alert("Você não tem permissão para realizar esta ação.");
+            return;
+        }
         if (window.confirm(`Tem certeza que deseja deletar o usuário "${userToDelete.name}" e todo o seu progresso?`)) {
             try {
+                // Deletar usuário no Firebase Authentication (Ainda não implementado no seu contexto)
+                // Isso requer uma função de Cloud Function ou SDK Admin para ser seguro e completo.
+                // O código abaixo deleta apenas os documentos do Firestore.
                 await deleteDoc(doc(db, 'users', userToDelete.id));
                 await deleteDoc(doc(db, 'progress', userToDelete.id));
+                
                 alert('Usuário deletado com sucesso!');
                 setSelectedUsers(prev => prev.filter(uid => uid !== userToDelete.id));
                 fetchData();
@@ -221,6 +243,10 @@ export default function DashboardPage() {
     };
 
     const handleDeleteSelectedUsers = async () => {
+        if (!checkIsAdmin(user?.role)) { // Dupla verificação de segurança
+            alert("Você não tem permissão para realizar esta ação.");
+            return;
+        }
         if (selectedUsers.length === 0) {
             alert('Selecione pelo menos um usuário para deletar.');
             return;
@@ -228,6 +254,7 @@ export default function DashboardPage() {
         if (window.confirm(`Tem certeza que deseja deletar ${selectedUsers.length} usuário(s) selecionado(s) e todo o seu progresso?`)) {
             try {
                 await Promise.all(selectedUsers.map(async (userId) => {
+                    // Deletar usuário no Firebase Authentication (Ainda não implementado no seu contexto)
                     await deleteDoc(doc(db, 'users', userId));
                     await deleteDoc(doc(db, 'progress', userId));
                 }));
@@ -265,13 +292,13 @@ export default function DashboardPage() {
     };
 
     const exportToCSV = () => {
-        const headers = ['Nome', 'Função', 'Módulos Concluídos', '% Acertos', 'NPS', 'CSAT', 'Certificado', 'Data de Cadastro'];
+        const headers = ['Nome', 'Função', 'Módulos Concluídos', '% Acertos', 'NPS', 'CSAT', 'Certificado', 'Data de Cadastro', 'Último Login'];
         const data = filteredUserData.map(user => {
             const feedback = feedbacks.find(fb => fb.userName === user.name);
             const completed = Object.values(user.progress || {}).filter(p => p.completed).length;
-            const total = Object.values(user.progress || {}).reduce((acc, p) => acc + (p.totalQuestions || 0), 0);
-            const correct = Object.values(user.progress || {}).reduce((acc, p) => acc + (p.score || 0), 0);
-            const acertos = total > 0 ? `${Math.round((correct / total) * 100)}%` : '-';
+            const totalQuestionsAttempted = Object.values(user.progress || {}).reduce((acc, p) => acc + (p.totalQuestions || 0), 0);
+            const totalCorrectAnswers = Object.values(user.progress || {}).reduce((acc, p) => acc + (p.score || 0), 0);
+            const acertos = totalQuestionsAttempted > 0 ? `${Math.round((totalCorrectAnswers / totalQuestionsAttempted) * 100)}%` : '-';
             return [
                 user.name,
                 user.role,
@@ -280,7 +307,8 @@ export default function DashboardPage() {
                 feedback?.nps ?? '-',
                 feedback?.csat ?? '-',
                 user.hasCertificate ? 'Sim' : 'Não',
-                user.registrationDate ? user.registrationDate.toLocaleDateString() : '-'
+                user.registrationDate ? user.registrationDate.toLocaleDateString('pt-BR') : '-',
+                user.lastLogin ? user.lastLogin.toLocaleString('pt-BR') : '-' // Incluir último login
             ];
         });
         const csv = [headers, ...data].map(row => row.join(',')).join('\n');
@@ -309,8 +337,16 @@ export default function DashboardPage() {
         ];
     }, [filteredUserData]);
 
-    if (authLoading || !user) {
-        return <div className="p-8 text-center">Verificando autenticação...</div>;
+    if (authLoading || !user || !checkIsAdmin(user.role)) { // Espera autenticação e verifica se é admin
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
+                <h1 className="text-4xl font-bold text-red-600 mb-4">Acesso Negado</h1>
+                <p className="text-xl text-gray-700">Você não tem privilégios administrativos para visualizar esta página.</p>
+                <Link to="/home" className="mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition-colors">
+                    Ir para o Início
+                </Link>
+            </div>
+        );
     }
 
     const npsMedia = feedbacks.length ? (feedbacks.reduce((acc, f) => acc + (f.nps ?? 0), 0) / feedbacks.length).toFixed(1) : '-';
@@ -336,7 +372,7 @@ export default function DashboardPage() {
                         >
                             <Bell size={20} className="text-gray-700" />
                             {newNotificationsCount > 0 && (
-                                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center -mt-1 -mr-1">
+                                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center -mt-1 -mr-1 animate-blink"> {/* Usando nova classe de animação */}
                                     {newNotificationsCount}
                                 </span>
                             )}
@@ -417,11 +453,9 @@ export default function DashboardPage() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm sm:text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">Todas</option>
-                                    <option>Enfermagem</option>
-                                    <option>Médico(a)</option>
-                                    <option>Estudante</option>
-                                    <option>Adm</option>
-                                    <option>Outro</option>
+                                    {Object.values(ROLES).map(roleOption => (
+                                        <option key={roleOption} value={roleOption}>{roleOption}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -465,6 +499,7 @@ export default function DashboardPage() {
                                         <th className="p-2 sm:p-3 font-semibold">Prog. (%)</th>
                                         <th className="p-2 sm:p-3 font-semibold">Cert.</th>
                                         <th className="p-2 sm:p-3 font-semibold">Data Cad.</th>
+                                        <th className="p-2 sm:p-3 font-semibold">Último Login</th> {/* Adicionado Último Login */}
                                         <th className="p-2 sm:p-3 font-semibold">Ações</th>
                                     </tr>
                                 </thead>
@@ -492,7 +527,8 @@ export default function DashboardPage() {
                                                     <span className="text-xs text-gray-500 mt-1 block">{data.completionPercentage.toFixed(0)}%</span>
                                                 </td>
                                                 <td className="p-2 sm:p-3">{data.hasCertificate ? 'Sim' : 'Não'}</td>
-                                                <td className="p-2 sm:p-3 whitespace-nowrap text-xs">{data.registrationDate ? data.registrationDate.toLocaleDateString() : 'N/A'}</td>
+                                                <td className="p-2 sm:p-3 whitespace-nowrap text-xs">{data.registrationDate ? data.registrationDate.toLocaleDateString('pt-BR') : 'N/A'}</td>
+                                                <td className="p-2 sm:p-3 whitespace-nowrap text-xs">{data.lastLogin ? data.lastLogin.toLocaleString('pt-BR') : 'N/A'}</td> {/* Exibir Último Login */}
                                                 <td className="p-2 sm:p-3">
                                                     <button onClick={() => handleDeleteUser(data)} className="bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold py-1 px-2 sm:px-3 rounded-full">
                                                         Deletar
@@ -502,7 +538,7 @@ export default function DashboardPage() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="8" className="p-3 text-center text-gray-500">Nenhum usuário encontrado com os filtros aplicados.</td>
+                                            <td colSpan="9" className="p-3 text-center text-gray-500">Nenhum usuário encontrado com os filtros aplicados.</td> {/* Colspan ajustado */}
                                         </tr>
                                     )}
                                 </tbody>

@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { ROLES } from '../utils/userRoles'; // Importar ROLES para consistência e segurança
 
 const UserContext = createContext();
 
@@ -18,8 +19,13 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Função para buscar dados do usuário no Firestore, incluindo a função (role)
   const fetchUserData = async (firebaseUser) => {
-    if (firebaseUser) {
+    if (!firebaseUser) {
+      setUser(null);
+      return null;
+    }
+    try {
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
@@ -27,25 +33,39 @@ export const UserProvider = ({ children }) => {
         setUser(userData);
         return userData;
       } else {
-        const defaultUserData = { uid: firebaseUser.uid, email: firebaseUser.email, name: firebaseUser.displayName || firebaseUser.email, role: 'Outro', feedbackPromptDismissed: false }; // NOVO: feedbackPromptDismissed
+        // Se o documento do usuário não existir (raro, mas pode acontecer se for criado fora do app)
+        // Criar um documento básico com a função padrão
+        const defaultUserData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || 'Novo Usuário', // Nome padrão
+          role: ROLES.OUTRO, // Função padrão SEGURA para garantir que não é Adm sem permissão
+          feedbackPromptDismissed: false,
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+        };
         await setDoc(userDocRef, defaultUserData, { merge: true });
         setUser(defaultUserData);
         return defaultUserData;
       }
-    } else {
-      setUser(null);
-      return null;
+    } catch (error) {
+      console.error("Erro ao buscar dados do usuário no Firestore:", error);
+      // Retorna dados básicos com uma função segura em caso de erro
+      return { uid: firebaseUser.uid, email: firebaseUser.email, name: firebaseUser.displayName || 'Usuário', role: ROLES.OUTRO };
     }
   };
 
+  // Observador de estado de autenticação do Firebase
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      fetchUserData(firebaseUser).finally(() => setLoading(false));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      await fetchUserData(firebaseUser);
+      setLoading(false);
     });
-    return () => unsubscribe();
+    return () => unsubscribe(); // Limpeza do listener
   }, []);
 
-  const registerWithEmail = async (name, email, password, role) => {
+  // Função para registrar novo usuário com e-mail e senha
+  const registerWithEmail = async (name, email, password) => { // NÃO RECEBE 'role' como parâmetro aqui
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
@@ -54,13 +74,13 @@ export const UserProvider = ({ children }) => {
       await setDoc(userDocRef, {
         name,
         email,
-        role,
+        role: ROLES.ENFERMAGEM, // ATENÇÃO: A FUNÇÃO É DEFINIDA AQUI DE FORMA SEGURA (ex: Enfermagem), NÃO PELO CLIENTE!
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
-        feedbackPromptDismissed: false, // NOVO: Inicializa como false no cadastro
+        feedbackPromptDismissed: false,
       });
 
-      const newUser = { uid: firebaseUser.uid, email: firebaseUser.email, name, role, feedbackPromptDismissed: false };
+      const newUser = { uid: firebaseUser.uid, email: firebaseUser.email, name, role: ROLES.ENFERMAGEM, feedbackPromptDismissed: false };
       setUser(newUser);
       return { success: true, user: newUser };
     } catch (error) {
@@ -83,10 +103,13 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Função para fazer login com e-mail e senha
   const loginWithEmail = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
+
+      console.log("UID do usuário autenticado APÓS LOGIN:", firebaseUser.uid); // <--- LOG PARA DEBUGAR
 
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       await updateDoc(userDocRef, {
@@ -147,7 +170,6 @@ export const UserProvider = ({ children }) => {
       return { success: false, error: errorMessage };
     }
   };
-
 
   return (
     <UserContext.Provider value={{ user, loading, registerWithEmail, loginWithEmail, logout, resetPassword }}>
