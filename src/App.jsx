@@ -1,3 +1,4 @@
+// src/App.jsx
 import React from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { useUser } from './Context/UserContext.jsx';
@@ -12,6 +13,7 @@ import ModulePage2D from './pages/ModulePage2D.jsx';
 import ModulePage3D from './pages/ModulePage3D.jsx';
 import CertificatePage from './pages/CertificatePage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx'; // NOVO: Importe o ProfilePage existente
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -28,7 +30,7 @@ const NotFoundPage = () => (
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useUser();
-  const { progress } = useProgress();
+  const { progress } = useProgress(); // Embora 'progress' não seja usado aqui, mantido para consistência
 
   if (loading) {
     return <div className="p-8 text-center">Verificando autenticação...</div>;
@@ -45,7 +47,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-export default function AppRoutes() {
+export default function AppRoutes() { // Seu componente principal de rotas
   return (
     <Routes>
       <Route path="/" element={<IntroPage />} />
@@ -56,6 +58,7 @@ export default function AppRoutes() {
       <Route path="/modulo/:id/simulacao" element={<ProtectedRoute><ModulePage3D /></ProtectedRoute>} />
       <Route path="/certificate" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Adm"]}><DashboardPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} /> {/* NOVO: Rota para ProfilePage */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
