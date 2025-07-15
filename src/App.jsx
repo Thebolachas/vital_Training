@@ -1,22 +1,17 @@
-import React, { useContext, lazy, Suspense } from 'react';
+import React from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
-import { UserProvider, useUser } from './Context/UserContext.jsx';
-import { ProgressProvider, useProgress } from './Context/ProgressContext.jsx';
+import { useUser } from './Context/UserContext.jsx';
+import { useProgress } from './Context/ProgressContext.jsx';
+import { modulosData } from './Data/dadosModulos.jsx';
 
-// Importar páginas estaticamente (pequenas ou sempre carregadas)
 import IntroPage from './pages/IntroPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegistrationPage from './pages/RegistrationPage.jsx';
 import HomePage from './pages/HomePage.jsx';
-
-// Lazy load de páginas maiores ou menos acessadas
-const ModulePage2D = lazy(() => import('./pages/ModulePage2D.jsx'));
-const ModulePage3D = lazy(() => import('./pages/ModulePage3D.jsx'));
-const CertificatePage = lazy(() => import('./pages/CertificatePage.jsx'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx')); // Importa ProfilePage
-
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+import ModulePage2D from './pages/ModulePage2D.jsx';
+import ModulePage3D from './pages/ModulePage3D.jsx';
+import CertificatePage from './pages/CertificatePage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -31,48 +26,37 @@ const NotFoundPage = () => (
   </div>
 );
 
-function AppContent() {
-  const { loading: userLoading } = useUser();
-  const { loading: progressLoading } = useProgress();
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user, loading } = useUser();
+  const { progress } = useProgress();
 
-  if (userLoading || progressLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-2xl text-gray-700">
-        Carregando aplicação...
-      </div>
-    );
+  if (loading) {
+    return <div className="p-8 text-center">Verificando autenticação...</div>;
   }
 
-  return (
-    <Suspense fallback={<div className="flex justify-center items-center h-screen text-2xl text-gray-700">Carregando conteúdo...</div>}>
-      <Routes>
-        <Route path="/" element={<IntroPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegistrationPage />} />
-        
-        {/* Rotas Protegidas */}
-        <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-        <Route path="/modulo/:id/teoria" element={<ProtectedRoute><ModulePage2D /></ProtectedRoute>} />
-        <Route path="/modulo/:id/simulacao" element={<ProtectedRoute><ModulePage3D /></ProtectedRoute>} />
-        <Route path="/certificate" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Adm"]}><DashboardPage /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        
-        {/* Rota para página não encontrada */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
-  );
-}
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-// O componente App principal NÃO DEVE MAIS TER O BrowserRouter AQUI.
-// Ele é responsável apenas por prover os contextos e renderizar AppContent.
-export default function App() {
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return children;
+};
+
+export default function AppRoutes() {
   return (
-    <UserProvider>
-      <ProgressProvider>
-        <AppContent />
-      </ProgressProvider>
-    </UserProvider>
+    <Routes>
+      <Route path="/" element={<IntroPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegistrationPage />} />
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/modulo/:id/teoria" element={<ProtectedRoute><ModulePage2D /></ProtectedRoute>} />
+      <Route path="/modulo/:id/simulacao" element={<ProtectedRoute><ModulePage3D /></ProtectedRoute>} />
+      <Route path="/certificate" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Adm"]}><DashboardPage /></ProtectedRoute>} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
