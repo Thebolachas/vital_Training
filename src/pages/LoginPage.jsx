@@ -1,10 +1,11 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from 'react';
+import React, { useState } from 'react'; // <--- CORRIGIDO: Removida a sintaxe incorreta
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../Context/UserContext.jsx';
-import NotificationModal from '../components/NotificationModal'; // Usar o NotificationModal padrão
-import logo from '/print/logo-vital.png'; // <--- CORREÇÃO AQUI: Alterado para logo-vital.png
-import '../App.css'; // Certifique-se de que App.css é importado aqui
+import NotificationModal from '../components/NotificationModal';
+import logo from '/print/logo-vital.png';
+import '../App.css';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,7 +13,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Para exibir mensagens via modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { loginWithEmail, resetPassword } = useUser();
@@ -22,11 +24,11 @@ export default function LoginPage() {
     setError('');
     setSuccessMessage('');
     setIsLoading(true);
-    setIsModalOpen(false); // Fechar qualquer modal anterior
+    setIsModalOpen(false);
 
     if (email.trim() === '' || password.trim() === '') {
       setError('Opa! Por favor, preencha seu e-mail e sua senha para continuar.');
-      setIsModalOpen(true); // Abrir modal com erro
+      setIsModalOpen(true);
       setIsLoading(false);
       return;
     }
@@ -38,7 +40,7 @@ export default function LoginPage() {
       navigate('/home');
     } else {
       setError(result.error || 'Erro ao fazer login. Tente novamente.');
-      setIsModalOpen(true); // Abrir modal com erro
+      setIsModalOpen(true);
     }
     setIsLoading(false);
   };
@@ -46,11 +48,11 @@ export default function LoginPage() {
   const handleResetPassword = async () => {
     setError('');
     setSuccessMessage('');
-    setIsModalOpen(false); // Fechar qualquer modal anterior
+    setIsModalOpen(false);
 
     if (email.trim() === '') {
       setError('Por favor, digite seu e-mail no campo acima para enviarmos o link de recuperação.');
-      setIsModalOpen(true); // Abrir modal com erro
+      setIsModalOpen(true);
       return;
     }
 
@@ -58,20 +60,20 @@ export default function LoginPage() {
     const result = await resetPassword(email);
     if (result.success) {
       setSuccessMessage('Um e-mail de recuperação de senha foi enviado para seu endereço. Por favor, verifique sua caixa de entrada (e a pasta de spam)!');
-      setIsModalOpen(true); // Abrir modal com sucesso
-      setEmail(''); // Limpa o campo de email
-      setPassword(''); // Limpa a senha também
+      setIsModalOpen(true);
+      setEmail('');
+      setPassword('');
     } else {
       setError(result.error || 'Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.');
-      setIsModalOpen(true); // Abrir modal com erro
+      setIsModalOpen(true);
     }
     setIsLoading(false);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setError(''); // Limpar erro ao fechar modal
-    setSuccessMessage(''); // Limpar sucesso ao fechar modal
+    setError('');
+    setSuccessMessage('');
   };
 
   return (
@@ -85,6 +87,11 @@ export default function LoginPage() {
             </div>
             <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center transform transition-all duration-300 hover:scale-105">
                 <h2 className="text-3xl font-bold text-gray-800 mb-6 animate-bounce-in-text">Login</h2>
+                
+                {(error || successMessage) && (
+                    <NotificationModal message={error || successMessage} onClose={closeModal} />
+                )}
+
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
                         <label htmlFor="email" className="sr-only">E-mail</label>
@@ -99,18 +106,26 @@ export default function LoginPage() {
                             disabled={isLoading}
                         />
                     </div>
-                    <div>
+                    <div className="relative">
                         <label htmlFor="password" className="sr-only">Senha</label>
                         <input
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             id="password"
                             placeholder="Senha"
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200"
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 pr-10"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             disabled={isLoading}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                          aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+                        >
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
                         <div className="text-right mt-1">
                             <button
                                 type="button"
@@ -144,11 +159,7 @@ export default function LoginPage() {
                     </Link>
                 </p>
             </div>
-
-            {(error || successMessage) && (
-                <NotificationModal message={error || successMessage} onClose={closeModal} />
-            )}
-        </div>
+      </div>
     </>
   );
 }

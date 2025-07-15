@@ -109,7 +109,7 @@ export const UserProvider = ({ children }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
-      console.log("UID do usuário autenticado APÓS LOGIN:", firebaseUser.uid); // <--- LOG PARA DEBUGAR
+      console.log("UID do usuário autenticado APÓS LOGIN:", firebaseUser.uid); // LOG DE DEBUG
 
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       await updateDoc(userDocRef, {
@@ -139,6 +139,24 @@ export const UserProvider = ({ children }) => {
       return { success: false, error: errorMessage };
     }
   };
+
+  // NOVO: Função para marcar o feedback como dado
+  const markFeedbackAsGiven = async (uid) => {
+    if (!uid) {
+      console.error("UID necessário para marcar feedback como dado.");
+      return;
+    }
+    try {
+      const userDocRef = doc(db, 'users', uid);
+      await updateDoc(userDocRef, { feedbackPromptDismissed: true });
+      // Atualiza o estado local do usuário para refletir a mudança imediatamente
+      setUser(prevUser => ({ ...prevUser, feedbackPromptDismissed: true }));
+      console.log("Feedback marcado como dado para o usuário:", uid);
+    } catch (error) {
+      console.error("Erro ao marcar feedback como dado:", error);
+    }
+  };
+
 
   const logout = async () => {
     try {
@@ -171,8 +189,9 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+
   return (
-    <UserContext.Provider value={{ user, loading, registerWithEmail, loginWithEmail, logout, resetPassword }}>
+    <UserContext.Provider value={{ user, loading, registerWithEmail, loginWithEmail, logout, resetPassword, markFeedbackAsGiven }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,22 +1,24 @@
 // src/pages/RegistrationPage.jsx
-import React, { useState } from 'react';
+import React, { useState } from 'react'; // <--- CORRIGIDO: Removida a sintaxe incorreta
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../Context/UserContext.jsx';
-import NotificationModal from '../components/NotificationModal'; // Usar o NotificationModal padrão
-import { ROLES } from '../utils/userRoles'; // Importar ROLES para o select
-import logo from '/print/logo-vital.png'; // <--- CORREÇÃO AQUI: Alterado para logo-vital.png
+import NotificationModal from '../components/NotificationModal';
+import { ROLES } from '../utils/userRoles';
+import logo from '/print/logo-vital.png';
 import '../App.css';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function RegistrationPage() {
-  const [isRegistering, setIsRegistering] = useState(true); // Começa como cadastro
+  const [isRegistering, setIsRegistering] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState(ROLES.ENFERMAGEM); // Definir um valor inicial padrão seguro
+  const [role, setRole] = useState(ROLES.ENFERMAGEM);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Para exibir mensagens via modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { registerWithEmail, loginWithEmail, resetPassword } = useUser();
@@ -26,7 +28,7 @@ export default function RegistrationPage() {
     setError('');
     setSuccessMessage('');
     setIsLoading(true);
-    setIsModalOpen(false); // Fechar qualquer modal anterior
+    setIsModalOpen(false);
 
     if (email.trim() === '' || password.trim() === '') {
       setError('Opa! Por favor, preencha seu e-mail e sua senha para continuar.');
@@ -35,7 +37,7 @@ export default function RegistrationPage() {
       return;
     }
 
-    if (isRegistering) { // Fluxo de CADASTRO
+    if (isRegistering) {
       if (name.trim() === '') {
         setError('Ops! Para se cadastrar, precisamos do seu nome completo.');
         setIsModalOpen(true);
@@ -49,18 +51,18 @@ export default function RegistrationPage() {
         return;
       }
 
-      const result = await registerWithEmail(name, email, password); // Removido 'role' do parâmetro
+      const result = await registerWithEmail(name, email, password);
 
       if (result.success) {
         setSuccessMessage('Cadastro realizado com sucesso! Você já pode acessar.');
         setIsModalOpen(true);
-        setTimeout(() => navigate('/login'), 2000);
+        setTimeout(() => navigate('/home'), 1000);
       } else {
         setError(result.error || 'Não foi possível completar seu cadastro. Tente novamente.');
         setIsModalOpen(true);
       }
 
-    } else { // Fluxo de LOGIN (Este componente também é usado para login, caso o usuário alterne)
+    } else {
       const result = await loginWithEmail(email, password);
       if (result.success) {
         setSuccessMessage('Login bem-sucedido! Redirecionando...');
@@ -76,7 +78,7 @@ export default function RegistrationPage() {
   const handleResetPassword = async () => {
     setError('');
     setSuccessMessage('');
-    setIsModalOpen(false); // Fechar qualquer modal anterior
+    setIsModalOpen(false);
 
     if (email.trim() === '') {
       setError('Por favor, digite seu e-mail no campo acima para enviarmos o link de recuperação.');
@@ -109,7 +111,7 @@ export default function RegistrationPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center p-4">
         <div className="absolute top-4 left-4">
             <Link to="/" className="text-white text-lg font-bold flex items-center">
-                <img src={logo} alt="Logo" className="h-8 w-auto mr-2" />
+                <img src="/print/logo-vital.png" alt="Logo" className="h-8 w-auto mr-2" />
                 iCTG TreinaFácil
             </Link>
         </div>
@@ -120,6 +122,10 @@ export default function RegistrationPage() {
             <p className="text-center text-gray-500 mb-8">
                 {isRegistering ? 'Crie sua conta para acessar o treinamento.' : 'Acesse sua conta para continuar.'}
             </p>
+
+            {(error || successMessage) && (
+                <NotificationModal message={error || successMessage} onClose={closeModal} />
+            )}
 
             <form onSubmit={handleAuthSubmit} className="space-y-6">
                 {isRegistering && (
@@ -150,23 +156,31 @@ export default function RegistrationPage() {
                     disabled={isLoading}
                 />
                 </div>
-                <div>
+                <div className="relative">
                 <label htmlFor="password" className="sr-only">Senha</label>
                 <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 pr-10"
                     placeholder="********"
                     required
                     disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                  aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
                 <div className="text-right mt-1">
                     <button
                     type="button"
                     onClick={handleResetPassword}
-                    className="text-blue-600 hover:underline text-sm"
+                    className="text-blue-500 hover:underline text-sm"
                     disabled={isLoading}
                     >
                     Esqueceu sua senha?
@@ -219,8 +233,8 @@ export default function RegistrationPage() {
                     setSuccessMessage('');
                     setEmail('');
                     setPassword('');
-                    setName(''); // Limpar nome ao alternar
-                    setRole(ROLES.ENFERMAGEM); // Resetar função para um valor padrão seguro
+                    setName('');
+                    setRole(ROLES.ENFERMAGEM);
                 }}
                 className="text-blue-600 font-semibold hover:underline mt-2 inline-block"
                 disabled={isLoading}
@@ -230,9 +244,6 @@ export default function RegistrationPage() {
             </div>
         </div>
       </div>
-      {(error || successMessage) && (
-          <NotificationModal message={error || successMessage} onClose={closeModal} />
-      )}
     </>
   );
 }

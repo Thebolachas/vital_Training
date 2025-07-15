@@ -76,7 +76,7 @@ export const modulosData = {
                 </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2 text-blue-700">3. Conectando os Transdutores</h3>
-                    <p>Pressione e segure o botão de energia de cada transdutor por cerca de three segundos para ligá-los. Verifique a conexão Bluetooth no aplicativo: um ícone de coração com um 'check' indica que a conexão foi bem-sucedida. Se não houver um 'check', aguarde ou reinicie os transdutores.</p>
+                    <p>Pressione e segure o botão de energia de cada transdutor por cerca de três segundos para ligá-los. Verifique a conexão Bluetooth no aplicativo: um ícone de coração com um 'check' indica que a conexão foi bem-sucedida. Se não houver um 'check', aguarde ou reinicie os transdutores.</p>
                 </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2 text-blue-700">4. Verificação dos Ícones de Status</h3>

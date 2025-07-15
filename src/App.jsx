@@ -1,7 +1,7 @@
 import React, { useContext, lazy, Suspense } from 'react';
-import { Routes, Route, Link, Navigate } from 'react-router-dom'; // Importe Navigate
-import { UserProvider, useUser } from './Context/UserContext.jsx'; // useUser também aqui
-import { ProgressProvider, useProgress } from './Context/ProgressContext.jsx'; // useProgress também aqui
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
+import { UserProvider, useUser } from './Context/UserContext.jsx';
+import { ProgressProvider, useProgress } from './Context/ProgressContext.jsx';
 
 // Importar páginas estaticamente (pequenas ou sempre carregadas)
 import IntroPage from './pages/IntroPage.jsx';
@@ -14,8 +14,9 @@ const ModulePage2D = lazy(() => import('./pages/ModulePage2D.jsx'));
 const ModulePage3D = lazy(() => import('./pages/ModulePage3D.jsx'));
 const CertificatePage = lazy(() => import('./pages/CertificatePage.jsx'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx')); // Importa ProfilePage
 
-import ProtectedRoute from './components/ProtectedRoute.jsx'; // Importar ProtectedRoute
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -30,7 +31,7 @@ const NotFoundPage = () => (
   </div>
 );
 
-function AppContent() { // Componente para conter as rotas e contextos
+function AppContent() {
   const { loading: userLoading } = useUser();
   const { loading: progressLoading } = useProgress();
 
@@ -55,6 +56,7 @@ function AppContent() { // Componente para conter as rotas e contextos
         <Route path="/modulo/:id/simulacao" element={<ProtectedRoute><ModulePage3D /></ProtectedRoute>} />
         <Route path="/certificate" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Adm"]}><DashboardPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         
         {/* Rota para página não encontrada */}
         <Route path="*" element={<NotFoundPage />} />
