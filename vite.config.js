@@ -24,7 +24,7 @@ export default defineConfig({
       },
       manifest: {
         name: 'TreinaFácil iCTG',
-        short_name: 'iCTG Treino',
+        short_name: 'Vital iCTG',
         description: 'Plataforma de treinamento para o dispositivo iCTG.',
         theme_color: '#A9D5EC', // Cor do tema (ajuste se necessário)
         background_color: '#A9D5EC', // Cor de fundo (ajuste se necessário)

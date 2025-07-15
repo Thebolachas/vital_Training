@@ -21,6 +21,8 @@ html {
 /* Ajustes gerais para garantir que o conteúdo não ultrapasse os limites */
 html, body {
   width: 100%;
+  height: 100%; /* GARANTE QUE A ALTURA PREENCHA TODO O VIEWSORT */
+  background-color: #1A202C; /* DEFINE UMA COR DE FUNDO PARA HTML/BODY QUE COMBINA COM O TEMA ESCURO */
   overflow-x: hidden;
   padding: 0;
   margin: 0;
