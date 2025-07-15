@@ -2,31 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Universal box-sizing reset para garantir consistência no modelo de caixa */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* GARANTE QUE HTML SE ESTENDE PARA PREENCHER A ALTURA DINÂMICA DO VIEWPORT NO CELULAR */
-  height: 100%;      /* Fallback para navegadores mais antigos */
-  height: 100dvh;     /* Para navegadores mais recentes que suportam 'dvh' */
-  overflow-y: auto;   /* Permite rolagem se o conteúdo ultrapassar */
+  /* HTML não terá mais uma altura fixa ou overflow-y; sua altura será implícita pelo BODY */
 }
 
 body {
   width: 100%;
-  height: 100%; /* FAZ O BODY OCUPAR 100% DA ALTURA DO HTML */
-  background-color: #1A202C; /* COR DE FUNDO CONSISTENTE */
-  overflow-x: hidden; /* IMPEDE ROLAGEM HORIZONTAL */
+  height: var(--app-height); /* A altura total é definida pelo JavaScript */
+  background-color: #1A202C; /* Cor de fundo consistente com o tema escuro */
+  overflow: hidden; /* AGORA CONTROLA AMBOS OS OVERFLOWS (horizontal e vertical) */
   padding: 0;
   margin: 0;
-  font-size: 16px; /* Tamanho de fonte padrão (ajustado por media queries se necessário) */
+  font-size: 16px; /* Tamanho de fonte padrão */
 }
 
-/* GARANTE QUE O DIV RAIZ DO REACT TAMBÉM PREENCHA O ESPAÇO E AJUDA NA DISTRIBUIÇÃO DO CONTEÚDO */
 #root {
   width: 100%;
-  height: 100%; /* Preenche a altura do body */
-  display: flex; /* Usa flexbox para que o conteúdo interno possa se esticar */
+  height: var(--app-height); /* A altura total é definida pelo JavaScript */
+  display: flex; /* Garante que o conteúdo interno se estique corretamente */
   flex-direction: column; /* Organiza os filhos em coluna */
+  /* Se o conteúdo de uma página específica precisar de rolagem, adicione overflow-y: auto a um contêiner DENTRO #root */
 }
 
 @layer utilities {
