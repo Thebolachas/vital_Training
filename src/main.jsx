@@ -1,35 +1,21 @@
-import React, { useEffect } from 'react'; // Import useEffect
+// src/main.jsx
+import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
-import './index.css';
+import './index.css'; 
+import { BrowserRouter } from 'react-router-dom'; // <--- Adicione esta importação
 
-function AppInitializer() {
-  useEffect(() => {
-    const setAppHeight = () => {
-      // Define uma variável CSS '--app-height' com a altura interna da janela
-      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-    };
-
-    // Define a altura inicial ao carregar a página
-    setAppHeight();
-
-    // Atualiza a altura sempre que a janela for redimensionada
-    window.addEventListener('resize', setAppHeight);
-
-    // Função de limpeza para remover o event listener quando o componente for desmontado
-    return () => window.removeEventListener('resize', setAppHeight);
-  }, []); // O array vazio [] garante que o efeito rode apenas uma vez (ao montar) e a função de limpeza (ao desmontar)
-
-  return (
-    <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>
-  );
-}
+import { UserProvider } from './Context/UserContext'; // Certifique-se de que este e o ProgressProvider também estão sendo usados se forem parte do seu contexto
+import { ProgressProvider } from './Context/ProgressContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <AppInitializer />
+  <React.StrictMode>
+    <BrowserRouter> {/* <--- Adicione o BrowserRouter aqui */}
+      <UserProvider> {/* Mantenha seus Providers aqui dentro do BrowserRouter */}
+        <ProgressProvider>
+          <App />
+        </ProgressProvider>
+      </UserProvider>
+    </BrowserRouter> {/* <--- Feche o BrowserRouter aqui */}
+  </React.StrictMode>,
 );

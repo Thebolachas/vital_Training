@@ -2,49 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Universal box-sizing reset para garantir consistência no modelo de caixa */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* HTML não terá mais uma altura fixa ou overflow-y; sua altura será implícita pelo BODY */
-}
-
-body {
-  width: 100%;
-  height: var(--app-height); /* A altura total é definida pelo JavaScript */
-  background-color: #1A202C; /* Cor de fundo consistente com o tema escuro */
-  overflow: hidden; /* AGORA CONTROLA AMBOS OS OVERFLOWS (horizontal e vertical) */
-  padding: 0;
-  margin: 0;
-  font-size: 16px; /* Tamanho de fonte padrão */
-}
-
-#root {
-  width: 100%;
-  height: var(--app-height); /* A altura total é definida pelo JavaScript */
-  display: flex; /* Garante que o conteúdo interno se estique corretamente */
-  flex-direction: column; /* Organiza os filhos em coluna */
-  /* Se o conteúdo de uma página específica precisar de rolagem, adicione overflow-y: auto a um contêiner DENTRO #root */
 }
 
 @layer utilities {
+  /* Classe para esconder a barra de scroll (mantida, não é uma animação) */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
   .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 }
 
+/* Ajustes gerais para garantir que o conteúdo não ultrapasse os limites */
+html, body {
+  width: 100%;
+  height: 100%; /* GARANTE QUE A ALTURA PREENCHA TODO O VIEWSORT */
+  background-color: #1A202C; /* DEFINE UMA COR DE FUNDO PARA HTML/BODY QUE COMBINA COM O TEMA ESCURO */
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
+  /* Ajustes para telas pequenas */
   body {
     font-size: 14px;
   }
+  
+  /* Corrige o comportamento de alguns elementos */
   .container {
     width: 100%;
     padding: 0 15px;
