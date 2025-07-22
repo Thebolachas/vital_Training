@@ -2,12 +2,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../Context/UserContext.jsx';
-import { auth } from '../firebaseConfig'; // Importa 'auth' para updatePassword
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'; // Para reautenticação e atualização
-import NotificationModal from '../components/NotificationModal.jsx'; // Usar o modal de notificação
+import { useProgress } from '../Context/ProgressContext.jsx';
+import { auth } from '../firebaseConfig';
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import NotificationModal from '../components/NotificationModal.jsx';
+import Badge from '../components/Badge.jsx';
+import { getUserBadges } from '../utils/userBadges.js';
 
 export default function ProfilePage() {
     const { user, logout } = useUser();
+    const { progress } = useProgress();
     const navigate = useNavigate();
 
     const [currentPassword, setCurrentPassword] = useState('');
@@ -16,6 +20,8 @@ export default function ProfilePage() {
     const [isLoading, setIsLoading] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const badges = getUserBadges(user, progress);
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -54,22 +60,22 @@ export default function ProfilePage() {
             if (!currentUser) {
                 setModalMessage('Usuário não autenticado. Por favor, faça login novamente.');
                 setIsModalOpen(true);
-                navigate('/login'); // Redireciona para login se não houver usuário
+                navigate('/login');
                 return;
             }
 
-            // Reautenticar o usuário
             const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
             await reauthenticateWithCredential(currentUser, credential);
 
-            // Se a reautenticação for bem-sucedida, atualiza a senha
             await updatePassword(currentUser, newPassword);
 
-            setModalMessage('Senha atualizada com sucesso!');
+            setModalMessage('Senha atualizada com sucesso! Por segurança, por favor, faça login novamente.');
             setIsModalOpen(true);
-            setCurrentPassword('');
+            logout();
             setNewPassword('');
             setConfirmNewPassword('');
+            setCurrentPassword('');
+
         } catch (error) {
             console.error("Erro ao alterar senha:", error);
             let message = "Erro ao alterar senha. Por favor, tente novamente.";
@@ -77,7 +83,7 @@ export default function ProfilePage() {
                 message = "Senha atual incorreta.";
             } else if (error.code === 'auth/requires-recent-login') {
                 message = "Por favor, faça login novamente e tente mudar a senha em seguida. (Sessão expirada para segurança)";
-                logout(); // Desloga o usuário para forçar um novo login
+                logout();
                 navigate('/login');
             } else if (error.code === 'auth/weak-password') {
                 message = "A nova senha é muito fraca.";
@@ -106,6 +112,14 @@ export default function ProfilePage() {
                     <p><span className="font-semibold">Nome:</span> {user.name}</p>
                     <p><span className="font-semibold">E-mail:</span> {user.email}</p>
                     <p><span className="font-semibold">Função:</span> {user.role}</p>
+                </div>
+                <div className="mt-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">Conquistas:</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {badges.map(badge => (
+                            <Badge key={badge.id} label={badge.label} color={badge.color} />
+                        ))}
+                    </div>
                 </div>
             </div>
 

@@ -13,7 +13,10 @@ import ModulePage2D from './pages/ModulePage2D.jsx';
 import ModulePage3D from './pages/ModulePage3D.jsx';
 import CertificatePage from './pages/CertificatePage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
-import ProfilePage from './pages/ProfilePage.jsx'; // NOVO: Importe o ProfilePage existente
+import ProfilePage from './pages/ProfilePage.jsx';
+
+// Importe o componente Analytics da Vercel
+import { Analytics } from '@vercel/analytics/react';
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -30,7 +33,7 @@ const NotFoundPage = () => (
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useUser();
-  const { progress } = useProgress(); // Embora 'progress' não seja usado aqui, mantido para consistência
+  const { progress } = useProgress();
 
   if (loading) {
     return <div className="p-8 text-center">Verificando autenticação...</div>;
@@ -47,19 +50,23 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-export default function AppRoutes() { // Seu componente principal de rotas
+export default function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<IntroPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegistrationPage />} />
-      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-      <Route path="/modulo/:id/teoria" element={<ProtectedRoute><ModulePage2D /></ProtectedRoute>} />
-      <Route path="/modulo/:id/simulacao" element={<ProtectedRoute><ModulePage3D /></ProtectedRoute>} />
-      <Route path="/certificate" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Adm"]}><DashboardPage /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} /> {/* NOVO: Rota para ProfilePage */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<IntroPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegistrationPage />} />
+        <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+        <Route path="/modulo/:id/teoria" element={<ProtectedRoute><ModulePage2D /></ProtectedRoute>} />
+        <Route path="/modulo/:id/simulacao" element={<ProtectedRoute><ModulePage3D /></ProtectedRoute>} />
+        <Route path="/certificate" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Adm"]}><DashboardPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+      {/* Adicione o componente Analytics aqui, no nível mais alto do seu aplicativo */}
+      <Analytics />
+    </>
   );
 }

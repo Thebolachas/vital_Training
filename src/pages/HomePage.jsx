@@ -6,6 +6,8 @@ import { modulosData } from '../Data/dadosModulos.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FeedbackModal from '../components/FeedbackModal.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
+import Badge from '../components/Badge.jsx';
+import { getUserBadges } from '../utils/userBadges.js';
 import { isAdmin as checkIsAdmin, isPrivileged as checkIsPrivileged, ROLES } from '../utils/userRoles.js';
 
 export default function HomePage() {
@@ -18,21 +20,17 @@ export default function HomePage() {
   const [showFeedbackPrompt, setShowFeedbackPrompt] = useState(false);
   const [feedbackGivenLocally, setFeedbackGivenLocally] = useState(false);
 
+  const modulesLimit = useMemo(() => {
+    if (checkIsAdmin(user?.role) || checkIsPrivileged(user?.role)) {
+      return 6; // Para administradores e privilegiados, 6 módulos
+    }
+    return 4; // Para os outros perfis (enfermeiros, etc), 4 módulos
+  }, [user]);
+
   const userHasCertificate = useMemo(() => {
     if (!user || !progress || progressLoading) return false;
 
-    const baseModules = ['1', '2', '3', '4'];
-    const advancedModules = ['5'];
-    let requiredModules = [];
-
-    if (checkIsAdmin(user.role)) {
-      requiredModules = Object.keys(modulosData);
-    } else if (checkIsPrivileged(user.role)) {
-      requiredModules = [...baseModules, ...advancedModules];
-    } else {
-      requiredModules = baseModules;
-    }
-
+    const requiredModules = ['1', '2', '3', '4']; // Os primeiros 4 módulos são necessários para o certificado
     const modulesWithQuizzes = requiredModules.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
     const completedRequiredQuizzes = modulesWithQuizzes.filter(id => progress[id]?.completed).length;
 
@@ -47,12 +45,6 @@ export default function HomePage() {
     }
     setFeedbackGivenLocally(user?.feedbackPromptDismissed || false);
   }, [user, userLoading, userHasCertificate]);
-
-  useEffect(() => {
-    if (location.state?.completedModuleId && location.state?.allCorrect) {
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state, navigate]);
 
   const handleOpenFeedbackModal = () => {
     setIsFeedbackModalOpen(true);
@@ -73,18 +65,18 @@ export default function HomePage() {
 
   const modulesToDisplay = useMemo(() => {
     if (!user) return [];
-    
-    const allModuleIds = Object.keys(modulosData).sort((a, b) => parseInt(a) - parseInt(b));
-    
-    if (checkIsAdmin(user.role) || checkIsPrivileged(user.role)) {
-      return allModuleIds;
-    } else {
-      return ['1', '2', '3', '4'].filter(id => allModuleIds.includes(id));
-    }
-  }, [user, modulosData]);
 
-  const totalModules = Object.keys(modulosData).length;
-  const completedModulesCount = Object.keys(modulosData).filter(moduleId => progress[moduleId]?.completed).length;
+    const allModuleIds = Object.keys(modulosData).sort((a, b) => parseInt(a) - parseInt(b));
+
+    if (checkIsAdmin(user.role) || checkIsPrivileged(user.role)) {
+      return allModuleIds; // Para admins e privilegiados, todos os módulos
+    } else {
+      return allModuleIds.filter(id => parseInt(id) <= modulesLimit); // Limitar até o módulo 4 ou 6, conforme o perfil
+    }
+  }, [user, modulosData, modulesLimit]);
+
+  const totalModules = modulesLimit; // Exibindo o total de módulos limitados conforme o perfil
+  const completedModulesCount = Object.keys(modulosData).filter(moduleId => progress[moduleId]?.completed && parseInt(moduleId) <= modulesLimit).length;
 
   if (userLoading || progressLoading) {
     return <div className="text-center p-8">Carregando dados do usuário e progresso...</div>;
@@ -93,7 +85,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <header className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-md mb-8">
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-800 mb-2 sm:mb-0">Olá, {user?.name || 'Usuário'}!</h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-800 mb-2 sm:mb-0">Olá, {user?.name || 'Usuário'}!</h1>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {getUserBadges(user, progress).map(badge => (
+              <Badge key={badge.id} label={badge.label} color={badge.color} />
+            ))}
+            {/* Exibe a badge de "Certificado Emitido" caso o usuário tenha completado os módulos necessários */}
+            {userHasCertificate && (
+              <Badge label="Certificado Emitido" color="bg-purple-500" />
+            )}
+          </div>
+        </div>
         <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-4">
           {checkIsAdmin(user?.role) && (
             <Link to="/dashboard" className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg text-sm sm:text-base">
@@ -139,14 +142,13 @@ export default function HomePage() {
 
       {userHasCertificate && (
         <div className="bg-white p-6 rounded-xl shadow-md mb-8 text-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-700 mb-4">Certificado de Conclusão</h2>
-            <p className="text-gray-600 mb-6">Parabéns! Você concluiu os módulos necessários e seu certificado está pronto.</p>
-            <Link to="/certificate" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg hover:shadow-xl">
-              Emitir Certificado
-            </Link>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-700 mb-4">Certificado de Conclusão</h2>
+          <p className="text-gray-600 mb-6">Parabéns! Você concluiu os módulos necessários e seu certificado está pronto.</p>
+          <Link to="/certificate" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg hover:shadow-xl">
+            Emitir Certificado
+          </Link>
         </div>
       )}
-
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {modulesToDisplay.map(id => {
@@ -178,7 +180,6 @@ export default function HomePage() {
                 {isCompleted && (
                   <span className="text-green-500 font-bold text-sm flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      {/* CORREÇÃO AQUI: Caminho SVG corrigido */}
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Concluído!
