@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modulosData } from '../Data/dadosModulos.jsx';
 import { useUser } from '../Context/UserContext';
-import { useProgress } from '../context/ProgressContext';
+import { useProgress } from '../Context/ProgressContext';
 import EnhancedQuiz from '../components/EnhancedQuiz';
 import AnimatedButton from '../components/AnimatedButton';
 import AnimatedCard from '../components/AnimatedCard';
