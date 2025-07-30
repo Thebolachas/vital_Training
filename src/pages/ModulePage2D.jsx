@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modulosData } from '../Data/dadosModulos.jsx';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../Context/UserContext';
 import { useProgress } from '../context/ProgressContext';
 import EnhancedQuiz from '../components/EnhancedQuiz';
 import AnimatedButton from '../components/AnimatedButton';
