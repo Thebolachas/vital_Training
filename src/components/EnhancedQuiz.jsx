@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
-import { useUser } from '../context/UserContext';
-import { useProgress } from '../context/ProgressContext';
+import { useUser } from '../Context/UserContext';
+import { useProgress } from '../Context/ProgressContext';
 import { useNavigate } from 'react-router-dom';
 import AnimatedButton from './AnimatedButton';
 import AnimatedCard from './AnimatedCard';
