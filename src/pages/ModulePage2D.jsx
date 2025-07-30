@@ -1,257 +1,159 @@
-// src/pages/ModulePage2D.jsx
-import React, { useState, useContext, createContext, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { modulosData } from '../Data/dadosModulos.jsx'; // Certifique-se que modulosData está importado
-import { useUser } from '../Context/UserContext.jsx';
-import { useProgress } from '../Context/ProgressContext.jsx'; // Correção na importação
+import React, { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { modulosData } from '../Data/dadosModulos.jsx';
+import { useUser } from '../context/UserContext';
+import { useProgress } from '../context/ProgressContext';
+import EnhancedQuiz from '../components/EnhancedQuiz';
+import AnimatedButton from '../components/AnimatedButton';
+import AnimatedCard from '../components/AnimatedCard';
 
-// (Funções ImagemExplicativa e Quiz são componentes auxiliares neste arquivo)
+const ImagemExplicativa = ({ imagens, onGoToQuiz, moduloId }) => {
+  const [imagemAtual, setImagemAtual] = useState(0);
 
-function ImagemExplicativa({ imagens, onGoToQuiz, moduloId }) {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const proximaImagem = () => {
+    setImagemAtual((prev) => (prev + 1) % imagens.length);
+  };
+
+  const imagemAnterior = () => {
+    setImagemAtual((prev) => (prev - 1 + imagens.length) % imagens.length);
+  };
+
+  // Debug para identificar o problema
+  console.log('🖼️ DEBUG IMAGENS:', {
+    imagens: imagens,
+    imagemAtual: imagemAtual,
+    totalImagens: imagens?.length,
+    imagemObj: imagens?.[imagemAtual]
+  });
 
   if (!imagens || imagens.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-        <p className="text-gray-500 italic">Nenhum estudo de caso com imagem disponível para este módulo ainda.</p>
-        <div className="mt-8">
-          <button onClick={onGoToQuiz} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
-            Ir para o Quiz
-          </button>
-        </div>
+      <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+        <p className="text-gray-500 mb-4">Nenhuma imagem disponível para este módulo.</p>
+        <AnimatedButton onClick={onGoToQuiz}>
+          Ir para o Quiz
+        </AnimatedButton>
       </div>
     );
   }
 
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-lg">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {imagens.map((item, index) => (
-          <div key={index} className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow flex flex-col items-center" onClick={() => setSelectedImage(item)}>
-            <img src={item.imagem} alt={item.titulo} className="w-full h-40 object-contain rounded mb-2" onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/600x400/fee2e2/991b1b?text=Imagem+indisponível'; }}/>
-            <p className="text-center font-semibold text-gray-700 mt-auto">{item.titulo}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 text-center"><button onClick={onGoToQuiz} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">Ir para o Quiz</button></div>
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" onClick={() => setSelectedImage(null)}>
-          <div className="bg-white p-6 rounded-lg max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <img src={selectedImage.imagem} alt={selectedImage.titulo} className="w-full h-auto object-contain rounded mb-4 max-h-[60vh]"/>
-            <h3 className="text-2xl font-bold mb-2 text-gray-800">{selectedImage.titulo}</h3>
-            <p className="text-gray-600">{selectedImage.descricao}</p>
-            <button onClick={() => setSelectedImage(null)} className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold transition-colors">Fechar</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Quiz({ questions, moduloId }) { // Nome do parâmetro corrigido de 'moduleId' para 'moduloId'
-  const navigate = useNavigate();
-  const { user } = useUser();
-  const { progress, saveQuizResult } = useProgress();
-
-  const [indice, setIndice] = useState(0);
-  const [acertos, setAcertos] = useState(0);
-  const [respondido, setRespondido] = useState(false);
-  const [selecionado, setSelecionado] = useState(null);
-  const [quizFinalizado, setQuizFinalizado] = useState(false);
-  const [showCertificateButton, setShowCertificateButton] = useState(false);
-  const [podeRefazer, setPodeRefazer] = useState(false);
-
-  // Lógica para encontrar o próximo módulo
-  const allModuleIds = Object.keys(modulosData).sort((a, b) => parseInt(a) - parseInt(b));
-  const currentModuleIndex = allModuleIds.indexOf(moduloId); // Usar moduloId
-  const nextModuleId = currentModuleIndex !== -1 && currentModuleIndex < allModuleIds.length - 1
-                       ? allModuleIds[currentModuleIndex + 1]
-                       : null;
-  const nextModuleTitle = nextModuleId ? modulosData[nextModuleId]?.title : null;
-  const nextModulePath = nextModuleId ? `/modulo/${nextModuleId}/teoria` : '/home';
-
-
-  const perguntaAtual = questions[indice];
-
-  const verificarResposta = (i) => {
-    if (respondido) return;
-    setSelecionado(i);
-    setRespondido(true);
-    if (i === perguntaAtual.correta) {
-      setAcertos(prev => prev + 1);
-    }
-  };
-
-  const handleFinishQuiz = () => {
-    const finalScore = respondido ? (selecionado === perguntaAtual.correta ? acertos + 1 : acertos) : acertos;
-    const acertouTudo = finalScore === questions.length;
-
-    // LÓGICA ESPECIAL PARA ADMINISTRADOR: NÃO COMPUTA PROGRESSO, SEMPRE PODE REFAZER
-    if (user?.role === 'Adm') {
-      setPodeRefazer(true);
-      setQuizFinalizado(true);
-      setShowCertificateButton(true); // Adm sempre pode ver o certificado (se quiser testar o fluxo)
-      // Navega para a home com estado, mesmo sendo Adm
-      navigate('/home', { state: { completedModuleId: moduloId, allCorrect: acertouTudo } }); // Usar moduloId
-      return;
-    }
-    
-    // Lógica normal para outros usuários: Salva o progresso
-    saveQuizResult(moduloId, finalScore, questions.length); // Usar moduloId
-
-    if (!acertouTudo) {
-      setPodeRefazer(true);
-    }
-    setQuizFinalizado(true);
-
-    // Lógica do botão de certificado para usuários não-Adm:
-    const baseModulesRequired = ['1', '2', '3', '4'];
-    const advancedModulesRequired = ['5'];
-    const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
-    const isPrivilegedUser = user && privilegedRoles.includes(user.role);
-
-    let allRequiredDone = false;
-    if (user?.role === 'Adm') {
-      allRequiredDone = Object.keys(modulosData).every(id => progress[id]?.completed);
-    } else if (isPrivilegedUser) {
-      allRequiredDone = [...baseModulesRequired, ...advancedModulesRequired].every(id => progress[id]?.completed);
-    } else {
-      allRequiredDone = baseModulesRequired.every(id => progress[id]?.completed);
-    }
-
-    if (allRequiredDone) {
-      setShowCertificateButton(true);
-    }
-    // NOVO: Navega para a home com estado para usuários não-Adm também
-    navigate('/home', { state: { completedModuleId: moduloId, allCorrect: acertouTudo } }); // Usar moduloId
-  };
-
-  const proxima = () => {
-    if (indice + 1 < questions.length) {
-      setIndice(indice + 1);
-      setRespondido(false);
-      setSelecionado(null);
-    } else {
-      handleFinishQuiz(); // Chama handleFinishQuiz que agora faz a navegação
-    }
-  };
-
-  const refazerQuiz = () => {
-    // Resetando todos os estados
-    setIndice(0);
-    setAcertos(0);
-    setRespondido(false);
-    setSelecionado(null);
-    setQuizFinalizado(false);
-    setPodeRefazer(false); // Desabilitando o botão de refazer até o quiz ser finalizado
-  };
-
-  if (quizFinalizado) {
-    const userName = user?.name ? user.name.split(' ')[0] : 'colega';
-    const finalMessage = acertouTudo
-      ? `Incrível, ${userName}! Você dominou este módulo!`
-      : `Mais uma etapa vencida, ${userName}, continue assim!`;
-
-    return (
-      <div className="max-w-xl mx-auto p-8 bg-white rounded-xl shadow-lg text-center animate-fade-in-up">
-        {/* Aplica a nova classe de animação ao texto da mensagem final */}
-        <h2 className="text-3xl font-bold mb-4 text-blue-600 animate-bounce-in-text">{finalMessage}</h2>
-        <p className="text-lg mb-6">Você acertou {acertos} de {questions.length} perguntas.</p>
-
-        {user?.role === 'Adm' && (
-          <p className="text-sm text-yellow-800 bg-yellow-100 p-2 rounded mb-4">
-            Este resultado não foi computado em seu progresso geral (Modo Administrador).
-          </p>
-        )}
-
-        {podeRefazer && (
-          <button
-            onClick={refazerQuiz}
-            className="w-full mb-4 bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-yellow-600 transition-colors"
-          >
-            Refazer Quiz
-          </button>
-        )}
-
-        {showCertificateButton && (
-          <Link
-            to="/certificate"
-            className="w-full block bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl mb-4"
-          >
-            Gerar Certificado de Conclusão
-          </Link>
-        )}
-        
-        {/* Este botão de navegação foi removido daqui e a navegação agora acontece no handleFinishQuiz */}
-        {/* Se quiser manter um botão para "voltar para seleção de módulos" para casos onde não há próximo módulo ou não houve acerto total, você pode adicionar aqui novamente */}
-        {/* O handleFinishQuiz já navega, então o user já estará na HomePage */}
-      </div>
-    );
-  }
+  const imagemObj = imagens[imagemAtual];
+  const imagemSrc = imagemObj?.imagem || imagemObj?.img || imagemObj?.image || imagemObj?.src;
+  const imagemTitulo = imagemObj?.titulo || imagemObj?.title || imagemObj?.name || 'Sem título';
+  const imagemDescricao = imagemObj?.descricao || imagemObj?.description || imagemObj?.desc || 'Sem descrição';
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-      {user?.role === 'Adm' && (
-        <p className="text-sm text-yellow-800 bg-yellow-100 p-2 rounded mb-4">
-          MODO ADMINISTRADOR: Testando Quiz. Este resultado não será salvo.
-        </p>
-      )}
-      <p className="text-sm text-gray-500 mb-2">Pergunta {indice + 1} de {questions.length}</p>
-      <h2 className="text-xl font-bold mb-4">{perguntaAtual.pergunta}</h2>
-      <div className="space-y-3">
-        {perguntaAtual.opcoes.map((op, i) => (
-          <button
-            key={i}
-            onClick={() => verificarResposta(i)}
-            disabled={respondido}
-            className={`block w-full text-left p-4 rounded-lg border-2 transition-all text-gray-700 ${
-              respondido
-                ? i === perguntaAtual.correta
-                  ? 'bg-green-100 border-green-500 font-bold'
-                  : i === selecionado
-                    ? 'bg-red-100 border-red-500'
-                    : 'bg-gray-100 border-gray-300'
-                : 'bg-white border-gray-300 hover:bg-blue-50 hover:border-blue-400'
-            }`}
-          >
-            {op}
-          </button>
-        ))}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white p-8 rounded-xl shadow-lg"
+    >
+      <h2 className="text-2xl font-bold mb-6 text-center">📸 Galeria de Imagens</h2>
+      
+      <div className="relative bg-gray-50 rounded-lg p-4 mb-4 min-h-[300px] flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {imagemSrc ? (
+            <motion.img
+              key={imagemAtual}
+              src={imagemSrc}
+              alt={imagemTitulo}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              transition={{ duration: 0.4 }}
+              className="w-full h-auto max-h-96 object-contain mx-auto rounded"
+              onError={(e) => {
+                console.error('❌ Erro ao carregar imagem:', e.target.src);
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div class="text-center text-gray-400">
+                    <div class="text-4xl mb-2">❌</div>
+                    <p>Erro ao carregar imagem</p>
+                    <p class="text-xs">${e.target.src}</p>
+                  </div>
+                `;
+              }}
+              onLoad={() => {
+                console.log('✅ Imagem carregada:', imagemSrc);
+              }}
+            />
+          ) : (
+            <motion.div
+              key={imagemAtual}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              transition={{ duration: 0.4 }}
+              className="text-center text-gray-400"
+            >
+              <div className="text-4xl mb-2">🖼️</div>
+              <p>Imagem não encontrada</p>
+              <p className="text-xs mt-1">Objeto: {JSON.stringify(imagemObj)}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      {respondido && (
-        <div className={`mt-4 p-4 rounded-lg ${selecionado === perguntaAtual.correta ? 'bg-green-50 border-l-4 border-green-500' : 'bg-red-50 border-l-4 border-red-500'}`}>
-          <p className="font-semibold">{selecionado === perguntaAtual.correta ? 'Resposta Correta!' : 'Resposta Incorreta.'}</p>
-          <p className="text-sm mt-1">{perguntaAtual.feedback}</p>
-        </div>
-      )}
-      {respondido && (
-        <button
-          onClick={proxima}
-          className="mt-6 w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+
+      <AnimatedCard>
+        <h3 className="text-lg font-semibold mb-2">{imagemTitulo}</h3>
+        <p className="text-gray-600 mb-4">{imagemDescricao}</p>
+      </AnimatedCard>
+
+      <div className="flex justify-between items-center mt-6">
+        <AnimatedButton 
+          variant="secondary" 
+          onClick={imagemAnterior}
+          disabled={imagens.length <= 1}
         >
-          {indice + 1 < questions.length ? 'Próxima Pergunta' : 'Ver Resultado Final'}
-        </button>
-      )}
-    </div>
-  );
-}
+          ← Anterior
+        </AnimatedButton>
 
-// Componente principal do MóduloPage2D
+        <span className="text-sm text-gray-500">
+          {imagemAtual + 1} de {imagens.length}
+        </span>
+
+        <AnimatedButton 
+          variant="secondary" 
+          onClick={proximaImagem}
+          disabled={imagens.length <= 1}
+        >
+          Próxima →
+        </AnimatedButton>
+      </div>
+
+      <div className="mt-6 text-center">
+        <AnimatedButton variant="success" onClick={onGoToQuiz}>
+          Fazer Quiz 🎯
+        </AnimatedButton>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function ModulePage2D() {
   const { id } = useParams();
   const moduloData = modulosData[id];
-  const [etapa, setEtapa] = useState("teoria"); // Estado local para a etapa atual
+  const [etapa, setEtapa] = useState("teoria");
 
   if (!moduloData || !moduloData.teoria2D) {
     return (
       <div className="text-center p-10 bg-gray-100 min-h-screen flex flex-col justify-center items-center">
-        <h2 className="text-2xl font-bold text-gray-700">Conteúdo não encontrado ou indisponível.</h2>
-        <Link to="/home" className="mt-4 text-blue-600 hover:underline">Voltar</Link>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h2 className="text-2xl font-bold text-gray-700 mb-4">Conteúdo não encontrado</h2>
+          <Link to="/home">
+            <AnimatedButton variant="primary">
+              Voltar para Home
+            </AnimatedButton>
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
-  // Prepara o conteúdo do módulo com base nos dados do modulosData
   const moduloParaRenderizar = {
     id: id,
     title: moduloData.title,
@@ -266,49 +168,106 @@ export default function ModulePage2D() {
     pink: 'border-b-4 border-pink-500 text-pink-600', 
     purple: 'border-b-4 border-purple-500 text-purple-600', 
     teal: 'border-b-4 border-teal-500 text-teal-600',
-    orange: 'border-b-4 border-orange-500 text-orange-600', // Adicionado para Módulo 4
+    orange: 'border-b-4 border-orange-500 text-orange-600',
   };
 
   const renderEtapa = () => {
     switch (etapa) {
-      case "teoria": return moduloParaRenderizar.teoria();
-      case "imagens": return <ImagemExplicativa imagens={moduloParaRenderizar.imagens} onGoToQuiz={() => setEtapa('quiz')} moduloId={moduloParaRenderizar.id} />;
-      case "quiz": return <Quiz questions={moduloParaRenderizar.quiz} moduloId={moduloParaRenderizar.id} />; // Passar moduloId aqui
-      default: return null;
+      case "teoria": 
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {moduloParaRenderizar.teoria()}
+          </motion.div>
+        );
+      case "imagens": 
+        return (
+          <ImagemExplicativa 
+            imagens={moduloParaRenderizar.imagens} 
+            onGoToQuiz={() => setEtapa('quiz')} 
+            moduloId={moduloParaRenderizar.id} 
+          />
+        );
+      case "quiz": 
+        return (
+          <EnhancedQuiz 
+            questions={moduloParaRenderizar.quiz} 
+            moduloId={moduloParaRenderizar.id}
+          />
+        );
+      default: 
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-gray-50 p-4 sm:p-8"
+    >
       <header className="flex justify-between items-center mb-10 pb-4 border-b-2 border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-800">{moduloData.title}</h1>
-        <Link to="/home" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Voltar</Link>
+        <motion.h1 
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          className="text-3xl font-bold text-gray-800"
+        >
+          {moduloData.title}
+        </motion.h1>
+        <Link to="/home">
+          <AnimatedButton variant="secondary">
+            ← Voltar
+          </AnimatedButton>
+        </Link>
       </header>
+
       <main>
         <div className="bg-gray-100 p-6 rounded-lg shadow-inner">
           <div className="mb-6 flex justify-center border-b-2 border-gray-200">
-            {["teoria", "imagens", "quiz"].map(aba => {
-              // Somente renderiza a aba se o conteúdo existir
-              if (!moduloParaRenderizar[aba] || (Array.isArray(moduloParaRenderizar[aba]) && moduloParaRenderizar[aba].length === 0)) return null;
+            {["teoria", "imagens", "quiz"].map((aba, index) => {
+              if (!moduloParaRenderizar[aba] || 
+                  (Array.isArray(moduloParaRenderizar[aba]) && moduloParaRenderizar[aba].length === 0)) {
+                return null;
+              }
               
-              let tabLabel = aba === 'imagens'
-                ? (moduloParaRenderizar.id === 'médico' ? 'Análise de Imagem (estudo de caso)' : 'Imagens Explicativas')
-                : aba.charAt(0).toUpperCase() + aba.slice(1); // Capitaliza a primeira letra
-
+              let tabLabel = aba === 'imagens' ? 'Imagens' : 
+                           aba === 'teoria' ? 'Teoria' : 'Quiz';
+              
               return (
-                <button
+                <motion.button
                   key={aba}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   onClick={() => setEtapa(aba)}
-                  className={`py-2 px-6 text-lg font-semibold transition-colors duration-300 ${etapa === aba ? activeTabClasses[moduloParaRenderizar.color] || 'border-b-4 border-gray-500 text-gray-600' : "text-gray-500 hover:text-gray-900"}`}
+                  className={`px-4 py-2 mr-4 font-semibold transition-all duration-200 ${
+                    etapa === aba 
+                      ? activeTabClasses[moduloParaRenderizar.color] || 'border-b-4 border-blue-500 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
                 >
                   {tabLabel}
-                </button>
+                </motion.button>
               );
             })}
           </div>
-          <div>{renderEtapa()}</div>
+          
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={etapa}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderEtapa()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
-    </div>
+    </motion.div>
   );
 }

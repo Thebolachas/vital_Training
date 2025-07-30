@@ -178,12 +178,12 @@ export const modulosData = {
         </div>
       ),
       imagens: [
-        { titulo: "Acessar Lista de Dados", imagem: "/ICTG_imagens/53_acessar_dados.png", descricao: "Toque no ícone da lista de dados para ver todos os exames salvos para o paciente selecionado." },
-        { titulo: "Selecionar Exame", imagem: "/ICTG_imagens/54_scroll_e_selecao.png", descricao: "Faça um scroll na lista para encontrar o exame desejado e toque para selecioná-lo." },
-        { titulo: "Visualizar Gráfico Antigo", imagem: "/ICTG_imagens/55_grafico_antigo.png", descricao: "O gráfico do exame selecionado será exibido, permitindo a análise retrospectiva." },
-        { titulo: "Falha no Envio", imagem: "/ICTG_imagens/56_reenviar_dados.png", descricao: "Se um exame não for enviado para a nuvem, ele será marcado como 'Unsend'." },
-        { titulo: "Confirmar Reenvio", imagem: "/ICTG_imagens/57_confirmar_reenvio.png", descricao: "Selecione o exame e confirme a opção de reenviar os dados para o servidor." },
-        { titulo: "Excluir Dados", imagem: "/ICTG_imagens/58_deletar_dados.png", descricao: "É possível excluir registros permanentemente do tablet, mas essa ação não pode ser desfeita." }
+        { titulo: "Acessar Lista de Dados", imagem: "/melody/Lista_de_Dados.png", descricao: "Toque no ícone da lista de dados para ver todos os exames salvos para o paciente selecionado." },
+        { titulo: "Selecionar Exame", imagem: "/melody/Captura de tela 2025-06-25 185831.png", descricao: "Faça um scroll na lista para encontrar o exame desejado e toque para selecioná-lo." },
+        { titulo: "Visualizar Gráfico Antigo", imagem: "/melody/Gráfico_Antigo.png", descricao: "O gráfico do exame selecionado será exibido, permitindo a análise retrospectiva." },
+        { titulo: "Falha no Envio", imagem: "/melody/Falha_ no_ Envio.png", descricao: "Se um exame não for enviado para a nuvem, ele será marcado como 'Unsend'." },
+        { titulo: "Confirmar Reenvio", imagem: "/melody/reenvio.png", descricao: "Selecione o exame e confirme a opção de reenviar os dados para o servidor." },
+        { titulo: "Excluir Dados", imagem: "/melody/excluir_dados.png", descricao: "É possível excluir registros permanentemente do tablet, mas essa ação não pode ser desfeita." }
       ],
       quiz: [
         { pergunta: 'O que você deve fazer se um exame estiver marcado como "Unsend"?', opcoes: ['Deletar o exame e refazê-lo', 'Selecionar o exame e usar a função de reenviar', 'Reiniciar o tablet'], correta: 1, feedback: "Correto! A marca 'Unsend' indica uma falha de transmissão. A função de reenviar foi criada exatamente para resolver essa situação sem perda de dados." },
@@ -211,12 +211,12 @@ export const modulosData = {
           </div>
         ),
         imagens: [
-            { titulo: "Visão Geral do Acesso Remoto", imagem: "/ICTG_imagens/59_visao_geral_remoto.png", descricao: "Os dados são enviados à nuvem Melody i, de onde podem ser acessados por um app dedicado ou por qualquer navegador web." },
-            { titulo: "Acesso via Navegador Web", imagem: "/ICTG_imagens/60_acesso_web.png", descricao: "Para acessar pelo navegador, basta inserir o URL fornecido, conta e senha." },
-            { titulo: "Interface do Viewer Web", imagem: "/ICTG_imagens/61_interface_web.png", descricao: "A tela principal do serviço web exibe o gráfico e permite selecionar o paciente, a data do exame e imprimir." },
-            { titulo: "Seleção de Paciente no Web", imagem: "/ICTG_imagens/62_selecao_paciente_web.png", descricao: "É possível alternar entre diferentes pacientes usando a lista suspensa de IDs." },
-            { titulo: "Seleção de Data do Exame", imagem: "/ICTG_imagens/63_selecao_data_web.png", descricao: "Para um mesmo paciente, pode-se navegar entre os diferentes registros de exames realizados." },
-            { titulo: "Configurações de Gráfico Web", imagem: "/ICTG_imagens/64_config_web.png", descricao: "As configurações permitem alterar a cor e espessura das linhas do gráfico, como FHR1, FHR2 e contração uterina." }
+            { titulo: "Visão Geral do Acesso Remoto", imagem: "/melody/Acesso_ Remoto.png", descricao: "Os dados são enviados à nuvem Melody i, de onde podem ser acessados por um app dedicado ou por qualquer navegador web." },
+            { titulo: "Acesso via Navegador Web", imagem: "/melody/acesso_web.png", descricao: "Para acessar pelo navegador, basta inserir o URL fornecido, conta e senha." },
+            { titulo: "Interface do Viewer Web", imagem: "/melody/selecao_pct_web.png", descricao: "A tela principal do serviço web exibe o gráfico e permite selecionar o paciente, a data do exame e imprimir." },
+            { titulo: "Seleção de Paciente no Web", imagem: "/melody/selecao_pct_area.png", descricao: "É possível alternar entre diferentes pacientes usando a lista suspensa de IDs." },
+            { titulo: "Seleção de Data do Exame", imagem: "/melody/selecao_data_do_exame.png", descricao: "Para um mesmo paciente, pode-se navegar entre os diferentes registros de exames realizados." },
+            { titulo: "Configurações de Gráfico Web", imagem: "/melody/selecao_graf.png", descricao: "As configurações permitem alterar a cor e espessura das linhas do gráfico, como FHR1, FHR2 e contração uterina." }
         ],
         quiz: [
             { pergunta: 'Qual método de acesso remoto oferece a funcionalidade mais completa, incluindo histórico de pacientes?', opcoes: ['Link de E-mail', 'Viewer App dedicado', 'Acesso pelo site da Melody'], correta: 1, feedback: "Correto! O Viewer App dedicado é a ferramenta mais completa, permitindo navegação completa entre pacientes e seus históricos, algo que o link de e-mail não faz." },
