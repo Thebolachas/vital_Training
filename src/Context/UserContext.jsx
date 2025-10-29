@@ -9,7 +9,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { ROLES } from '../utils/userRoles'; // Importar ROLES para consistência e segurança
+import { ROLES } from '../utils/userRoles'; 
 
 const UserContext = createContext();
 
@@ -19,7 +19,6 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Função para buscar dados do usuário no Firestore, incluindo a função (role)
   const fetchUserData = async (firebaseUser) => {
     if (!firebaseUser) {
       setUser(null);
@@ -33,13 +32,11 @@ export const UserProvider = ({ children }) => {
         setUser(userData);
         return userData;
       } else {
-        // Se o documento do usuário não existir (raro, mas pode acontecer se for criado fora do app)
-        // Criar um documento básico com a função padrão
         const defaultUserData = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          name: firebaseUser.displayName || 'Novo Usuário', // Nome padrão
-          role: ROLES.OUTRO, // Função padrão SEGURA para garantir que não é Adm sem permissão
+          name: firebaseUser.displayName || 'Novo Usuário', 
+          role: ROLES.OUTRO, 
           feedbackPromptDismissed: false,
           createdAt: serverTimestamp(),
           lastLogin: serverTimestamp(),
@@ -50,22 +47,21 @@ export const UserProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Erro ao buscar dados do usuário no Firestore:", error);
-      // Retorna dados básicos com uma função segura em caso de erro
       return { uid: firebaseUser.uid, email: firebaseUser.email, name: firebaseUser.displayName || 'Usuário', role: ROLES.OUTRO };
     }
   };
 
-  // Observador de estado de autenticação do Firebase
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       await fetchUserData(firebaseUser);
       setLoading(false);
     });
-    return () => unsubscribe(); // Limpeza do listener
+    return () => unsubscribe();
   }, []);
 
-  // Função para registrar novo usuário com e-mail e senha
-  const registerWithEmail = async (name, email, password) => { // NÃO RECEBE 'role' como parâmetro aqui
+  // --- FUNÇÃO CORRIGIDA ---
+  // Agora ela aceita 'role' como um argumento
+  const registerWithEmail = async (name, email, password, role) => { // 1. ADICIONADO 'role' AQUI
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
@@ -74,13 +70,13 @@ export const UserProvider = ({ children }) => {
       await setDoc(userDocRef, {
         name,
         email,
-        role: ROLES.ENFERMAGEM, // ATENÇÃO: A FUNÇÃO É DEFINIDA AQUI DE FORMA SEGURA (ex: Enfermagem), NÃO PELO CLIENTE!
+        role: role, // 2. USANDO A 'role' DO PARÂMETRO
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
         feedbackPromptDismissed: false,
       });
 
-      const newUser = { uid: firebaseUser.uid, email: firebaseUser.email, name, role: ROLES.ENFERMAGEM, feedbackPromptDismissed: false };
+      const newUser = { uid: firebaseUser.uid, email: firebaseUser.email, name, role: role, feedbackPromptDismissed: false }; // 3. USANDO A 'role' AQUI TAMBÉM
       setUser(newUser);
       return { success: true, user: newUser };
     } catch (error) {
@@ -102,14 +98,12 @@ export const UserProvider = ({ children }) => {
       return { success: false, error: errorMessage };
     }
   };
+  // --- FIM DA CORREÇÃO ---
 
-  // Função para fazer login com e-mail e senha
   const loginWithEmail = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
-
-      console.log("UID do usuário autenticado APÓS LOGIN:", firebaseUser.uid); // LOG DE DEBUG
 
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       await updateDoc(userDocRef, {
@@ -118,7 +112,8 @@ export const UserProvider = ({ children }) => {
 
       const fetchedUser = await fetchUserData(firebaseUser);
       return { success: true, user: fetchedUser };
-    } catch (error) {
+    } catch (error)
+ {
       console.error("Erro no login:", error);
       let errorMessage = "Erro ao fazer login. ";
       switch (error.code) {
@@ -140,7 +135,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // NOVO: Função para marcar o feedback como dado
   const markFeedbackAsGiven = async (uid) => {
     if (!uid) {
       console.error("UID necessário para marcar feedback como dado.");
@@ -149,7 +143,6 @@ export const UserProvider = ({ children }) => {
     try {
       const userDocRef = doc(db, 'users', uid);
       await updateDoc(userDocRef, { feedbackPromptDismissed: true });
-      // Atualiza o estado local do usuário para refletir a mudança imediatamente
       setUser(prevUser => ({ ...prevUser, feedbackPromptDismissed: true }));
       console.log("Feedback marcado como dado para o usuário:", uid);
     } catch (error) {

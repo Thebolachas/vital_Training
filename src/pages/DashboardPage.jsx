@@ -8,14 +8,15 @@ import { collection, getDocs, deleteDoc, doc, query, orderBy, where, Timestamp, 
 import { saveAs } from 'file-saver';
 import { modulosData } from '../Data/dadosModulos.jsx';
 import NotificationModal from '../components/NotificationModal.jsx';
-import { Bell } from 'lucide-react';
+import Badge from '../components/Badge.jsx';
+import { Bell, Users, TrendingUp, Smile, Download, RefreshCw, LogOut, Home, Trash2, UserPlus } from 'lucide-react'; // Adicionado UserPlus
 
+// Componente para os cards de depoimento
 function TestimonialCard({ feedback }) {
     const [expanded, setExpanded] = useState(false);
     const renderStars = (rating) => '★'.repeat(rating || 0) + '☆'.repeat(5 - (rating || 0));
-
     return (
-        <div onClick={() => setExpanded(!expanded)} className="cursor-pointer bg-white p-4 sm:p-6 rounded-xl shadow-lg transition-all hover:scale-[1.02]">
+        <div onClick={() => setExpanded(!expanded)} className="cursor-pointer bg-white p-4 sm:p-6 rounded-xl shadow-lg transition-all hover:shadow-xl hover:-translate-y-1">
             <p className="text-gray-800 italic text-sm sm:text-base">"{feedback.openText}"</p>
             <p className="text-right font-bold mt-3 sm:mt-4 text-blue-700 text-xs sm:text-sm">- {feedback.userName} ({feedback.userRole})</p>
             {expanded && (
@@ -31,18 +32,16 @@ function TestimonialCard({ feedback }) {
     );
 }
 
+// Lógica de cálculo do certificado
 const calculateUserCertificateStatus = (user, userProgress, allModulosData) => {
     if (!user || !userProgress) {
         return false;
     }
-
     const baseModules = ['1', '2', '3', '4'];
     const advancedModules = ['5'];
     const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
     const isPrivileged = privilegedRoles.includes(user.role);
-
     let requiredModulesForCertificate = [];
-
     if (user.role === 'Adm') {
         requiredModulesForCertificate = Object.keys(allModulosData);
     } else if (isPrivileged) {
@@ -50,12 +49,26 @@ const calculateUserCertificateStatus = (user, userProgress, allModulosData) => {
     } else {
         requiredModulesForCertificate = baseModules;
     }
-
     const modulesWithQuizzesForCertificate = requiredModulesForCertificate.filter(id => allModulosData[id]?.teoria2D || allModulosData[id]?.simulacao3D);
     const completedCount = modulesWithQuizzesForCertificate.filter(id => userProgress[id]?.completed).length;
-
     return completedCount === modulesWithQuizzesForCertificate.length && modulesWithQuizzesForCertificate.length > 0;
 };
+
+// Card de Estatística (KPI)
+const StatsCard = ({ title, value, icon, unit }) => (
+    <div className="bg-white p-5 rounded-xl shadow-lg flex items-center space-x-4 transition-all hover:shadow-xl hover:scale-105">
+      <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-500">{title}</p>
+        <p className="text-3xl font-bold text-gray-900">
+          {value}
+          {unit && <span className="text-base font-normal text-gray-500 ml-1">{unit}</span>}
+        </p>
+      </div>
+    </div>
+);
 
 
 export default function DashboardPage() {
@@ -66,17 +79,21 @@ export default function DashboardPage() {
     const [roleData, setRoleData] = useState([]);
     const [adminLoginLogs, setAdminLoginLogs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUpdatingRole, setIsUpdatingRole] = useState(false); // Loading da promoção
 
+    // --- FILTROS ---
     const [filterRole, setFilterRole] = useState('');
     const [filterName, setFilterName] = useState('');
+    const [filterCompletion, setFilterCompletion] = useState(''); 
+    // --- FIM FILTROS ---
 
     const [selectedUsers, setSelectedUsers] = useState([]);
 
-    // Estados para Notificações
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [notificationData, setNotificationData] = useState({ newUsers: [], newFeedbacks: [], recentAdminLogins: [] });
     const [newNotificationsCount, setNewNotificationsCount] = useState(0);
 
+    // Efeito para carregar dados
     useEffect(() => {
         if (authLoading) return;
         if (!user) {
@@ -86,27 +103,25 @@ export default function DashboardPage() {
         } else {
             fetchData();
             fetchAdminLogs();
-            fetchNotifications(); // Buscar notificações ao carregar
+            fetchNotifications(); 
         }
     }, [user, authLoading, navigate]);
 
+    // Função para buscar dados principais
     const fetchData = async () => {
         setIsLoading(true);
         try {
             const usersSnapshot = await getDocs(collection(db, 'users'));
             const usersList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
             const progressSnapshot = await getDocs(collection(db, 'progress'));
             const progressMap = {};
             progressSnapshot.forEach(doc => { progressMap[doc.id] = doc.data(); });
-
             const combinedData = usersList.map(u => {
                 const userProgress = progressMap[u.id] || {};
                 const baseModules = ['1', '2', '3', '4'];
                 const advancedModules = ['5'];
                 const privilegedRoles = ['Médico(a)', 'Residente', 'Estudante'];
                 const isPrivileged = privilegedRoles.includes(u.role);
-
                 let userRequiredModules = [];
                 if (u.role === 'Adm') {
                     userRequiredModules = Object.keys(modulosData);
@@ -115,39 +130,34 @@ export default function DashboardPage() {
                 } else {
                     userRequiredModules = baseModules;
                 }
-
                 const userModulesWithQuizzes = userRequiredModules.filter(id => modulosData[id]?.teoria2D || modulosData[id]?.simulacao3D);
                 const userCompletedCount = userModulesWithQuizzes.filter(id => (userProgress[id] || {})?.completed).length;
                 const userTotalModules = userModulesWithQuizzes.length;
                 const completionPercentage = userTotalModules > 0 ? (userCompletedCount / userTotalModules) * 100 : 0;
-                
                 const hasCertificate = calculateUserCertificateStatus(u, userProgress, modulosData);
-
                 return {
                     ...u,
                     progress: userProgress,
                     completedModules: userCompletedCount,
                     totalModules: userTotalModules,
                     completionPercentage: completionPercentage,
-                    hasCertificate: hasCertificate,
+                    hasCertificate: hasCertificate, 
                     registrationDate: u.createdAt ? u.createdAt.toDate() : null
                 };
             });
             setAllUserData(combinedData);
-
             const feedbacksSnapshot = await getDocs(collection(db, 'feedbacks'));
             setFeedbacks(feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-
             const roleCounts = usersList.reduce((acc, u) => ({ ...acc, [u.role]: (acc[u.role] || 0) + 1 }), {});
             setRoleData(Object.keys(roleCounts).map(role => ({ name: role, value: roleCounts[role] })));
         } catch (error) {
             console.error("Erro ao carregar dados do dashboard: ", error);
-            alert("Não foi possível carregar os dados do dashboard. Verifique o console para mais detalhes.");
         } finally {
             setIsLoading(false);
         }
     };
-
+    
+    // Função para buscar logs de admin
     const fetchAdminLogs = async () => {
         try {
             const q = query(collection(db, 'admin_logins'), orderBy('timestamp', 'desc'));
@@ -159,29 +169,20 @@ export default function DashboardPage() {
         }
     };
 
-    // Função para buscar notificações (novos usuários e feedbacks)
+    // Função para buscar notificações
     const fetchNotifications = async () => {
-        // Obter o timestamp da última vez que o Adm viu as notificações
-        // Se user.lastNotificationsViewed não existir, usar uma data bem antiga (início do UNIX epoch)
         const lastViewedTimestamp = user?.lastNotificationsViewed || Timestamp.fromDate(new Date(0));
-
-        // Novos Usuários (apenas aqueles criados APÓS a última visualização)
         const usersQuery = query(collection(db, 'users'), where('createdAt', '>', lastViewedTimestamp), orderBy('createdAt', 'desc'));
         const usersSnapshot = await getDocs(usersQuery);
         const newUsers = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        // Novos Feedbacks (apenas aqueles criados APÓS a última visualização)
         const feedbacksQuery = query(collection(db, 'feedbacks'), where('timestamp', '>', lastViewedTimestamp), orderBy('timestamp', 'desc'));
         const feedbacksSnapshot = await getDocs(feedbacksQuery);
         const newFeedbacks = feedbacksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        // Registros de Login de Adm recentes (apenas aqueles criados APÓS a última visualização)
         const adminLogsQuery = query(collection(db, 'admin_logins'), where('timestamp', '>', lastViewedTimestamp), orderBy('timestamp', 'desc'), limit(5));
         const adminLogsSnapshot = await getDocs(adminLogsQuery);
         const recentAdminLogins = adminLogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
         setNotificationData({ newUsers, newFeedbacks, recentAdminLogins });
-        setNewNotificationsCount(newUsers.length + newFeedbacks.length + recentAdminLogins.length); // Total de novos itens para o badge
+        setNewNotificationsCount(newUsers.length + newFeedbacks.length + recentAdminLogins.length);
     };
 
     // Função para marcar notificações como vistas
@@ -192,18 +193,15 @@ export default function DashboardPage() {
                 await updateDoc(userDocRef, {
                     lastNotificationsViewed: serverTimestamp(),
                 });
-                // Atualiza o estado local do usuário para que o sininho suma imediatamente
-                // (O user no contexto é imutável, então criamos um novo objeto para forçar o re-render se necessário)
-                user.lastNotificationsViewed = Timestamp.now(); // Isso atualiza a referência dentro do objeto user do contexto
-                setNewNotificationsCount(0); // Limpa o contador no UI imediatamente
-                // Não é necessário chamar fetchNotifications() imediatamente aqui, pois o modal será fechado e reaberto vazio
-                console.log("Notificações marcadas como vistas.");
+                user.lastNotificationsViewed = Timestamp.now(); 
+                setNewNotificationsCount(0); 
             } catch (error) {
                 console.error("Erro ao marcar notificações como vistas:", error);
             }
         }
     };
 
+    // Função para deletar usuário
     const handleDeleteUser = async (userToDelete) => {
         if (window.confirm(`Tem certeza que deseja deletar o usuário "${userToDelete.name}" e todo o seu progresso?`)) {
             try {
@@ -220,6 +218,7 @@ export default function DashboardPage() {
         }
     };
 
+    // Função para deletar usuários selecionados
     const handleDeleteSelectedUsers = async () => {
         if (selectedUsers.length === 0) {
             alert('Selecione pelo menos um usuário para deletar.');
@@ -243,6 +242,7 @@ export default function DashboardPage() {
         }
     };
 
+    // Funções de controle da tabela
     const handleToggleSelectAll = (e) => {
         if (e.target.checked) {
             setSelectedUsers(filteredUserData.map(u => u.id));
@@ -259,11 +259,13 @@ export default function DashboardPage() {
         );
     };
 
+    // Função de Logout
     const handleLogout = async () => {
         await logout();
         navigate('/login');
     };
 
+    // Função de Exportar CSV
     const exportToCSV = () => {
         const headers = ['Nome', 'Função', 'Módulos Concluídos', '% Acertos', 'NPS', 'CSAT', 'Certificado', 'Data de Cadastro'];
         const data = filteredUserData.map(user => {
@@ -287,7 +289,36 @@ export default function DashboardPage() {
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         saveAs(blob, `relatorio_usuarios_${new Date().toISOString().slice(0, 10)}.csv`);
     };
-
+    
+    // --- NOVA FUNÇÃO ---
+    const handlePromoteToAdmin = async (userToPromote) => {
+        if (userToPromote.role === 'Adm') {
+            alert(`${userToPromote.name} já é um Administrador.`);
+            return;
+        }
+        if (window.confirm(`Tem certeza que deseja promover "${userToPromote.name}" a Administrador?`)) {
+            setIsUpdatingRole(true);
+            try {
+                const userDocRef = doc(db, 'users', userToPromote.id);
+                await updateDoc(userDocRef, {
+                    role: 'Adm'
+                });
+                alert('Usuário promovido a Adm com sucesso!');
+                // Atualiza a lista localmente para refletir a mudança imediatamente
+                setAllUserData(prevData => prevData.map(u => 
+                    u.id === userToPromote.id ? { ...u, role: 'Adm' } : u
+                ));
+            } catch (error) {
+                console.error("Erro ao promover usuário: ", error);
+                alert('Falha ao promover usuário.');
+            } finally {
+                setIsUpdatingRole(false);
+            }
+        }
+    };
+    // --- FIM NOVA FUNÇÃO ---
+    
+    // useMemo para filtrar dados
     const filteredUserData = useMemo(() => {
         let filtered = allUserData;
 
@@ -297,9 +328,19 @@ export default function DashboardPage() {
         if (filterName) {
             filtered = filtered.filter(u => u.name.toLowerCase().includes(filterName.toLowerCase()));
         }
-        return filtered;
-    }, [allUserData, filterRole, filterName]);
+        
+        // Lógica do filtro de conclusão
+        if (filterCompletion === 'concluido') {
+            filtered = filtered.filter(u => u.hasCertificate);
+        }
+        if (filterCompletion === 'nao_concluido') {
+             filtered = filtered.filter(u => !u.hasCertificate);
+        }
 
+        return filtered;
+    }, [allUserData, filterRole, filterName, filterCompletion]); 
+
+    // useMemo para gráfico de certificado
     const certificateChartData = useMemo(() => {
         const issued = filteredUserData.filter(u => u.hasCertificate).length;
         const notIssued = filteredUserData.length - issued;
@@ -309,246 +350,224 @@ export default function DashboardPage() {
         ];
     }, [filteredUserData]);
 
+    // Verificação de loading de autenticação
     if (authLoading || !user) {
         return <div className="p-8 text-center">Verificando autenticação...</div>;
     }
 
+    // Médias de NPS e CSAT
     const npsMedia = feedbacks.length ? (feedbacks.reduce((acc, f) => acc + (f.nps ?? 0), 0) / feedbacks.length).toFixed(1) : '-';
     const csatMedia = feedbacks.length ? (feedbacks.reduce((acc, f) => acc + (f.csat ?? 0), 0) / feedbacks.length).toFixed(1) : '-';
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
+    // --- RENDERIZAÇÃO ---
     return (
         <div className="p-4 sm:p-8 bg-gray-100 min-h-screen">
-            <header className="bg-white p-4 rounded-xl shadow-md mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gray-800 text-center sm:text-left">Dashboard do Administrador</h1>
-                    <p className="text-sm sm:text-base text-gray-500 text-center sm:text-left">Visão geral do progresso e feedback dos usuários.</p>
+            <header className="bg-white p-4 sm:p-5 rounded-xl shadow-lg mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                 <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center sm:text-left">Dashboard</h1>
+                    <p className="text-sm sm:text-base text-gray-500 text-center sm:text-left">Visão geral do sistema.</p>
                 </div>
-                <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                    {/* Sininho de Notificações */}
+                <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3">
+                    <button onClick={exportToCSV} className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm sm:text-base flex items-center gap-2 transition-colors"><Download size={16} /> Exportar CSV</button>
+                    <button onClick={fetchData} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-blue-300 text-sm sm:text-base flex items-center gap-2 transition-colors"><RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> {isLoading ? 'Atualizando' : 'Atualizar'}</button>
+                    <Link to="/home" className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-center text-sm sm:text-base flex items-center gap-2 transition-colors"><Home size={16} /> Módulos</Link>
+                    <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm sm:text-base flex items-center gap-2 transition-colors"><LogOut size={16} /> Logout</button>
                     <div className="relative">
-                        <button
-                            onClick={() => {
-                                setIsNotificationModalOpen(true);
-                                markNotificationsAsViewed(); // Marcar como visto ao abrir o modal
-                            }}
-                            className="p-2 rounded-full hover:bg-gray-200 transition-colors relative text-sm sm:text-base"
-                        >
-                            <Bell size={20} className="text-gray-700" />
-                            {newNotificationsCount > 0 && (
-                                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center -mt-1 -mr-1">
-                                    {newNotificationsCount}
-                                </span>
-                            )}
-                        </button>
+                        <button onClick={() => { setIsNotificationModalOpen(true); markNotificationsAsViewed(); }} className="p-3 rounded-full hover:bg-gray-200 transition-colors relative"><Bell size={20} className="text-gray-700" />{newNotificationsCount > 0 && (<span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center -mt-1 -mr-1 border-2 border-white">{newNotificationsCount}</span>)}</button>
                     </div>
-                    <button onClick={exportToCSV} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg text-sm sm:text-base">
-                        Exportar CSV
-                    </button>
-                    <button onClick={fetchData} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg disabled:bg-blue-300 text-sm sm:text-base">
-                        {isLoading ? 'Atualizando...' : 'Atualizar Dados'}
-                    </button>
-                    <Link to="/home" className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg text-center text-sm sm:text-base">
-                        Acessar Módulos
-                    </Link>
-                    <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg text-sm sm:text-base">
-                        Logout
-                    </button>
                 </div>
             </header>
 
             {isLoading ? (
                 <div className="text-center p-10">Carregando dados...</div>
             ) : (
-                <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow text-center">
-                            <h3 className="text-base sm:text-lg font-bold text-gray-700 mb-2">NPS Médio</h3>
-                            <p className="text-4xl sm:text-5xl font-black text-blue-600">{npsMedia}</p>
-                            <p className="text-xs sm:text-base text-gray-400">de 0 a 10</p>
-                        </div>
-                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow text-center">
-                            <h3 className="text-base sm:text-lg font-bold text-gray-700 mb-2">CSAT Médio</h3>
-                            <p className="text-4xl sm:text-5xl font-black text-green-600">{csatMedia}</p>
-                            <p className="text-xs sm:text-base text-gray-400">escala de 1 a 5</p>
-                        </div>
-                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow text-center flex flex-col justify-center items-center">
-                            <h3 className="text-base sm:text-lg font-semibold text-gray-500">Usuários Totais</h3>
-                            <p className="text-6xl sm:text-7xl font-bold text-blue-600">{allUserData.length}</p>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-8">
-                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow">
-                            <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-4">Usuários por Perfil</h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <PieChart>
-                                    <Pie data={roleData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
-                                        {roleData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow">
-                            <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-4">Status de Certificação</h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <PieChart>
-                                    <Pie data={certificateChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
-                                        {certificateChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
+                    <div className="lg:col-span-2 space-y-6">
 
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow mb-8">
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-700 mb-4">Filtrar Usuários</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-6">
-                            <div>
-                                <label htmlFor="filterRole" className="block text-sm font-medium text-gray-700 mb-1">Função</label>
-                                <select
-                                    id="filterRole"
-                                    value={filterRole}
-                                    onChange={(e) => setFilterRole(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm sm:text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    <option value="">Todas</option>
-                                    <option>Enfermagem</option>
-                                    <option>Médico(a)</option>
-                                    <option>Estudante</option>
-                                    <option>Adm</option>
-                                    <option>Outro</option>
-                                </select>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <StatsCard title="Usuários Totais" value={allUserData.length} icon={<Users size={24} />}/>
+                            <StatsCard title="NPS Médio" value={npsMedia} unit="de 10" icon={<TrendingUp size={24} />}/>
+                            <StatsCard title="CSAT Médio" value={csatMedia} unit="de 5" icon={<Smile size={24} />}/>
+                        </div>
+
+                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Gerenciamento de Usuários</h2>
+                            
+                            {/* --- Área de Filtros (com 3 colunas) --- */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4 p-4 bg-gray-50 rounded-lg border">
+                                <div>
+                                    <label htmlFor="filterName" className="block text-sm font-medium text-gray-700 mb-1">Buscar por Nome</label>
+                                    <input type="text" id="filterName" value={filterName} onChange={(e) => setFilterName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm sm:text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Digite um nome..."/>
+                                </div>
+                                <div>
+                                    <label htmlFor="filterRole" className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Função</label>
+                                    <select id="filterRole" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm sm:text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Todas as Funções</option>
+                                        <option>Enfermagem</option>
+                                        <option>Médico(a)</option>
+                                        <option>Estudante</option>
+                                        <option>Adm</option>
+                                        <option>Outro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="filterCompletion" className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Conclusão</label>
+                                    <select id="filterCompletion" value={filterCompletion} onChange={(e) => setFilterCompletion(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm sm:text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Todos os Status</option>
+                                        <option value="concluido">Concluídos (com Certif.)</option>
+                                        <option value="nao_concluido">Não Concluídos</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label htmlFor="filterName" className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                                <input
-                                    type="text"
-                                    id="filterName"
-                                    value={filterName}
-                                    onChange={(e) => setFilterName(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm sm:text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Buscar por nome"
-                                />
+                            
+                            <div className="flex justify-end items-center mb-4">
+                                <button onClick={handleDeleteSelectedUsers} disabled={selectedUsers.length === 0} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base flex items-center gap-2"> <Trash2 size={16} /> Deletar Selecionados ({selectedUsers.length}) </button>
                             </div>
-                        </div>
 
-                        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3 sm:gap-0">
-                            <h2 className="text-xl sm:text-2xl font-bold text-gray-700 text-center sm:text-left">Detalhes por Usuário</h2>
-                            <button
-                                onClick={handleDeleteSelectedUsers}
-                                disabled={selectedUsers.length === 0}
-                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                            >
-                                Deletar Selecionados ({selectedUsers.length})
-                            </button>
-                        </div>
-
-                        <div className="overflow-x-auto rounded-lg border border-gray-200">
-                            <table className="w-full text-left table-auto sm:table-fixed">
-                                <thead className="bg-gray-50 text-xs sm:text-sm">
-                                    <tr className="border-b">
-                                        <th className="p-2 sm:p-3 font-semibold w-10">
-                                            <input
-                                                type="checkbox"
-                                                onChange={handleToggleSelectAll}
-                                                checked={selectedUsers.length === filteredUserData.length && filteredUserData.length > 0}
-                                            />
-                                        </th>
-                                        <th className="p-2 sm:p-3 font-semibold">Nome</th>
-                                        <th className="p-2 sm:p-3 font-semibold">Perfil</th>
-                                        <th className="p-2 sm:p-3 font-semibold">Módulos Conc.</th>
-                                        <th className="p-2 sm:p-3 font-semibold">Prog. (%)</th>
-                                        <th className="p-2 sm:p-3 font-semibold">Cert.</th>
-                                        <th className="p-2 sm:p-3 font-semibold">Data Cad.</th>
-                                        <th className="p-2 sm:p-3 font-semibold">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-xs sm:text-sm">
-                                    {filteredUserData.length > 0 ? (
-                                        filteredUserData.map((data, index) => (
-                                            <tr key={data.id} className="border-b hover:bg-gray-50">
-                                                <td className="p-2 sm:p-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedUsers.includes(data.id)}
-                                                        onChange={() => handleCheckboxChange(data.id)}
-                                                    />
-                                                </td>
-                                                <td className="p-2 sm:p-3 font-medium truncate max-w-[100px] sm:max-w-none">{data.name}</td>
-                                                <td className="p-2 sm:p-3 text-gray-600 truncate max-w-[80px] sm:max-w-none">{data.role}</td>
-                                                <td className="p-2 sm:p-3 text-gray-600 whitespace-nowrap">{data.completedModules} de {data.totalModules}</td>
-                                                <td className="p-2 sm:p-3">
-                                                    <div className="w-20 sm:w-24 bg-gray-200 rounded-full h-2">
-                                                        <div
-                                                            className="bg-blue-600 h-2 rounded-full"
-                                                            style={{ width: `${data.completionPercentage}%` }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className="text-xs text-gray-500 mt-1 block">{data.completionPercentage.toFixed(0)}%</span>
-                                                </td>
-                                                <td className="p-2 sm:p-3">{data.hasCertificate ? 'Sim' : 'Não'}</td>
-                                                <td className="p-2 sm:p-3 whitespace-nowrap text-xs">{data.registrationDate ? data.registrationDate.toLocaleDateString() : 'N/A'}</td>
-                                                <td className="p-2 sm:p-3">
-                                                    <button onClick={() => handleDeleteUser(data)} className="bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold py-1 px-2 sm:px-3 rounded-full">
-                                                        Deletar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="8" className="p-3 text-center text-gray-500">Nenhum usuário encontrado com os filtros aplicados.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow mb-8">
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-700 mb-4">Registros de Login de Administradores</h2>
-                        {adminLoginLogs.length > 0 ? (
+                            {/* --- TABELA ATUALIZADA --- */}
                             <div className="overflow-x-auto rounded-lg border border-gray-200">
-                                <table className="w-full text-left table-auto sm:table-fixed">
-                                    <thead className="bg-gray-50 text-xs sm:text-sm">
-                                        <tr className="border-b">
-                                            <th className="p-2 sm:p-3 font-semibold">Nome do Adm</th>
-                                            <th className="p-2 sm:p-3 font-semibold">Data/Hora</th>
+                                <table className="w-full text-left table-auto">
+                                    <thead className="bg-gray-100 text-xs sm:text-sm text-gray-600 uppercase">
+                                        <tr className="border-b border-gray-200">
+                                            <th className="p-3 font-semibold w-10"><input type="checkbox" onChange={handleToggleSelectAll} checked={selectedUsers.length === filteredUserData.length && filteredUserData.length > 0} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/></th>
+                                            <th className="p-3 font-semibold">Nome</th>
+                                            <th className="p-3 font-semibold">Perfil</th>
+                                            <th className="p-3 font-semibold">Módulos Conc.</th>
+                                            <th className="p-3 font-semibold">Progresso</th>
+                                            <th className="p-3 font-semibold">Certificado</th>
+                                            <th className="p-3 font-semibold whitespace-nowrap">Data Cadastro</th>
+                                            <th className="p-3 font-semibold">Ações</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="text-xs sm:text-sm">
-                                        {adminLoginLogs.map(log => (
-                                            <tr key={log.id} className="border-b hover:bg-gray-50">
-                                                <td className="p-2 sm:p-3 truncate max-w-[100px] sm:max-w-none">{log.name}</td>
-                                                <td className="p-2 sm:p-3 whitespace-nowrap">{log.timestamp?.toDate().toLocaleString('pt-BR') || 'N/A'}</td>
-                                            </tr>
-                                        ))}
+                                    <tbody className="text-xs sm:text-sm divide-y divide-gray-100">
+                                        {filteredUserData.length > 0 ? (
+                                            filteredUserData.map((data, index) => (
+                                                <tr key={data.id} className="hover:bg-gray-50">
+                                                    <td className="p-3"><input type="checkbox" checked={selectedUsers.includes(data.id)} onChange={() => handleCheckboxChange(data.id)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/></td>
+                                                    <td className="p-3 font-medium text-gray-900 truncate max-w-xs">{data.name}</td>
+                                                    <td className="p-3 text-gray-600 truncate max-w-xs">{data.role}</td>
+                                                    <td className="p-3 text-gray-600 whitespace-nowrap">{data.completedModules} de {data.totalModules}</td>
+                                                    <td className="p-3">
+                                                        <div className="w-24 bg-gray-200 rounded-full h-2.5"><div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${data.completionPercentage}%` }}></div></div>
+                                                        <span className="text-xs text-gray-500 mt-1 block">{data.completionPercentage.toFixed(0)}%</span>
+                                                    </td>
+                                                    <td className="p-3">{data.hasCertificate ? <Badge label="Sim" color="bg-green-500" /> : <Badge label="Não" color="bg-gray-400" />}</td>
+                                                    <td className="p-3 whitespace-nowrap text-xs text-gray-500">{data.registrationDate ? data.registrationDate.toLocaleDateString() : 'N/A'}</td>
+                                                    {/* --- BOTÕES DE AÇÃO ATUALIZADOS --- */}
+                                                    <td className="p-3 whitespace-nowrap space-x-2">
+                                                        {/* Botão Promover só aparece se o usuário NÃO for Adm */}
+                                                        {data.role !== 'Adm' && (
+                                                            <button 
+                                                                onClick={() => handlePromoteToAdmin(data)} 
+                                                                disabled={isUpdatingRole}
+                                                                className="bg-green-100 text-green-700 hover:bg-green-200 text-xs font-bold py-1 px-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-wait"
+                                                                title="Promover a Administrador"
+                                                            >
+                                                                <UserPlus size={14} className="inline -mt-0.5"/>
+                                                            </button>
+                                                        )}
+                                                        <button 
+                                                            onClick={() => handleDeleteUser(data)} 
+                                                            disabled={isUpdatingRole}
+                                                            className="bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold py-1 px-3 rounded-full transition-colors disabled:opacity-50"
+                                                            title="Deletar Usuário"
+                                                        >
+                                                            <Trash2 size={14} className="inline -mt-0.5"/>
+                                                        </button>
+                                                    </td>
+                                                    {/* --- FIM BOTÕES DE AÇÃO --- */}
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr><td colSpan="8" className="p-4 text-center text-gray-500">Nenhum usuário encontrado com os filtros aplicados.</td></tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
-                        ) : (
-                            <div className="text-center p-6 text-gray-500 text-sm sm:text-base">Nenhum registro de login de administrador.</div>
-                        )}
+                        </div>
+
+                        {/* Card de Feedbacks (com verificação) */}
+                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Feedbacks e Depoimentos</h2>
+                            {feedbacks && feedbacks.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                    {feedbacks.map(fb => <TestimonialCard key={fb.id} feedback={fb} />)}
+                                </div>
+                            ) : (
+                                <div className="text-center p-6 text-gray-500 text-sm sm:text-base">
+                                    Nenhum feedback recebido ainda.
+                                </div>
+                            )}
+                        </div>
+
                     </div>
 
-                    <div className="mt-6 sm:mt-8">
-                        <h2 className="text-xl sm:text-3xl font-black text-gray-800 mb-4 sm:mb-6">Feedbacks e Depoimentos</h2>
-                        {feedbacks.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                                {feedbacks.map(fb => <TestimonialCard key={fb.id} feedback={fb} />)}
+                    {/* --- COLUNA LATERAL --- */}
+                    <div className="lg:col-span-1 space-y-6">
+
+                        {/* Card dos Gráficos (com verificação) */}
+                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Usuários por Perfil</h3>
+                            <div style={{ width: '100%', height: 250 }}>
+                                <ResponsiveContainer>
+                                    <PieChart>
+                                        <Pie data={roleData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                                            {roleData && roleData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </div>
-                        ) : (
-                            <div className="bg-white p-4 sm:p-6 rounded-xl text-center text-sm sm:text-base">
-                                <p className="text-gray-500">Nenhum feedback recebido ainda.</p>
+
+                            <hr className="my-6" />
+
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Status de Certificação</h3>
+                             <div style={{ width: '100%', height: 250 }}>
+                                <ResponsiveContainer>
+                                    <PieChart>
+                                        <Pie data={certificateChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                                            {certificateChartData && certificateChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </div>
-                        )}
+                        </div>
+
+                        {/* Card dos Logs de Admin (COM A VERIFICAÇÃO CORRETA) */}
+                        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Registros de Login (Admin)</h2>
+                            {adminLoginLogs && adminLoginLogs.length > 0 ? (
+                                <div className="overflow-y-auto max-h-[400px] rounded-lg border border-gray-200">
+                                    <table className="w-full text-left table-auto">
+                                        <thead className="bg-gray-100 text-xs sm:text-sm text-gray-600 uppercase sticky top-0">
+                                            <tr className="border-b border-gray-200">
+                                                <th className="p-3 font-semibold">Nome do Adm</th>
+                                                <th className="p-3 font-semibold">Data/Hora</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-xs sm:text-sm">
+                                            {adminLoginLogs.map(log => (
+                                                <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                    <td className="p-3 truncate max-w-xs">{log.name}</td>
+                                                    <td className="p-3 whitespace-nowrap">{log.timestamp?.toDate().toLocaleString('pt-BR') || 'N/A'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center p-6 text-gray-500 text-sm sm:text-base">Nenhum registro de login de administrador.</div>
+                            )}
+                        </div>
+
                     </div>
-                </>
+                
+                </div>
             )}
 
             {/* Modal de Notificações */}
