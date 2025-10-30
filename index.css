@@ -1,0 +1,160 @@
+/* 📁 src/index.css (VERSÃO CONSOLIDADA) */
+
+/* 1. IMPORTAÇÕES PRIMEIRO */
+@import './styles/animations.css'; /* Mantém as animações importadas */
+
+/* 2. DIRETIVAS DO TAILWIND */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 3. ESTILOS PERSONALIZADOS NAS CAMADAS */
+@layer base {
+  /* Estilos base (reset, fontes, corpo, html, #root) */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    height: 100%; /* Garante que html ocupe a altura */
+  }
+
+  body {
+    width: 100%;
+    min-height: 100%; /* Usa min-height para garantir que cubra a viewport */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    /* Usa uma cor de fundo padrão Tailwind se desejar, ou mantenha a sua */
+    /* background-color: theme('colors.gray.100'); */
+     background-color: #f0f2f5; /* Fundo cinza claro que você usava */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* Fonte Inter como primária */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: theme('colors.gray.800'); /* Cor de texto padrão */
+  }
+
+  #root {
+    min-height: 100vh; /* Garante que o container React ocupe pelo menos a altura da tela */
+    display: flex; /* Opcional: usar flexbox se App for o container principal */
+    flex-direction: column; /* Opcional: se #root for flex container */
+  }
+
+  /* Melhoria de performance e reset básico */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-width: 0; /* Tailwind reseta isso, mas bom garantir */
+    border-style: solid; /* Tailwind reseta isso */
+    border-color: theme('borderColor.DEFAULT', currentColor); /* Tailwind reseta isso */
+  }
+
+  /* Transições suaves para elementos interativos comuns */
+  button, a, input, textarea, select {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms; /* Velocidade padrão do Tailwind */
+  }
+
+  /* Estilo de foco visível e acessível */
+  *:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px theme('colors.blue.500 / 50%'); /* Anel de foco azul semi-transparente */
+  }
+
+   /* Seleção de texto customizada */
+  ::selection {
+    background-color: theme('colors.blue.500'); /* Cor primária */
+    color: theme('colors.white');
+  }
+
+  /* Links básicos */
+   a {
+     color: theme('colors.blue.600');
+     text-decoration: none; /* Remover sublinhado padrão */
+   }
+   a:hover {
+     text-decoration: underline; /* Adicionar sublinhado no hover */
+   }
+
+} /* Fim do @layer base */
+
+@layer components {
+  /* Componentes reutilizáveis (Ex: botões, cards - se não usar classes utilitárias) */
+  /* Estilos que estavam em App.css foram movidos para cá ou aplicados via Tailwind diretamente nos componentes */
+
+  /* .simulacao-container { ... } - Pode ser removido se aplicado com Tailwind onde necessário */
+  /* .botao-continuar { ... } - Pode ser removido se aplicado com Tailwind onde necessário */
+
+  /* Exemplo: Se você tivesse um estilo de card comum */
+  /* .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  } */
+
+  /* Efeito de hover que você tinha (pode ser uma classe utilitária também) */
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: theme('boxShadow.lg'); /* Usando sombra maior do Tailwind */
+  }
+
+} /* Fim do @layer components */
+
+@layer utilities {
+  /* Classes utilitárias customizadas */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+   /* Estilo para scrollbars (opcional, pode deixar o padrão do navegador) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: theme('colors.gray.100');
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.gray.400');
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.gray.500');
+  }
+
+  /* Efeito shimmer para loading (opcional) */
+  .loading-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: theme('colors.gray.200'); /* Cor base do skeleton */
+  }
+  .loading-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, theme('colors.gray.50' / 60%), transparent);
+    animation: loading 1.5s infinite;
+  }
+
+} /* Fim do @layer utilities */
+
+/* Media queries e responsividade (podem ficar fora das layers) */
+/* Tailwind já é mobile-first, então use variantes como md:, lg: */
+
+/* Reduzir animações para acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
